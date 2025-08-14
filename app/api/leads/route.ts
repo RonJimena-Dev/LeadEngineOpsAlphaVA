@@ -5,53 +5,30 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// GET /api/leads - Fetch leads with filtering and pagination
+// GET /api/leads - Get all leads with optional filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
-    // Parse query parameters
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
     const industry = searchParams.get('industry');
-    const source = searchParams.get('source');
-    const enrichment_status = searchParams.get('enrichment_status');
-    const minScore = parseInt(searchParams.get('minScore') || '0');
-    const searchTerm = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'created_at';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const location = searchParams.get('location');
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Build query
     let query = supabase
       .from('leads')
-      .select('*', { count: 'exact' });
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Apply filters
     if (industry) {
       query = query.eq('industry', industry);
     }
-    if (source) {
-      query = query.eq('source', source);
-    }
-    if (enrichment_status) {
-      query = query.eq('enrichment_status', enrichment_status);
-    }
-    if (minScore > 0) {
-      query = query.gte('lead_score', minScore);
-    }
-    if (searchTerm) {
-      query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+
+    if (location) {
+      query = query.eq('location', location);
     }
 
-    // Apply sorting
-    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-
-    // Apply pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
-
-    const { data: leads, error, count } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Error fetching leads:', error);
@@ -62,13 +39,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      leads,
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit)
-      }
+      leads: data,
+      total: count,
+      limit,
+      offset
     });
 
   } catch (error) {
@@ -80,44 +54,42 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/leads - Create new lead
+// POST /api/leads - Create a new lead
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
     // Validate required fields
-    if (!body.name || !body.source) {
+    if (!body.name || !body.industry || !body.location) {
       return NextResponse.json(
-        { error: 'Name and source are required' },
+        { error: 'Name, industry, and location are required' },
         { status: 400 }
       );
     }
 
-    // Check for duplicate lead
-    const { data: existing } = await supabase
-      .from('leads')
-      .select('id')
-      .eq('name', body.name)
-      .eq('source', body.source)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      return NextResponse.json(
-        { error: 'Lead already exists' },
-        { status: 409 }
-      );
-    }
-
-    // Insert new lead
-    const { data: lead, error } = await supabase
+    const { data, error } = await supabase
       .from('leads')
       .insert({
-        ...body,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        name: body.name,
+        category: body.category || body.industry,
+        phone: body.phone,
+        email: body.email,
+        website: body.website,
+        location: body.location,
+        city: body.city || body.location.split(',')[0]?.trim(),
+        state: body.state || body.location.split(',')[1]?.trim(),
+        source: body.source || 'manual',
+        industry: body.industry,
+        enrichment_status: body.enrichment_status || 'pending',
+        enrichment_method: body.enrichment_method,
+        lead_score: body.lead_score || 50,
+        rating: body.rating,
+        review_count: body.review_count,
+        linkedin_url: body.linkedin_url,
+        source_url: body.source_url,
+        search_term: body.search_term
       })
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('Error creating lead:', error);
@@ -127,7 +99,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(lead, { status: 201 });
+    return NextResponse.json({
+      message: 'Lead created successfully',
+      lead: data[0]
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Error in POST /api/leads:', error);
@@ -138,27 +113,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/leads - Update lead
+// PUT /api/leads/:id - Update a lead
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     
-    if (!body.id) {
+    if (!id) {
       return NextResponse.json(
         { error: 'Lead ID is required' },
         { status: 400 }
       );
     }
 
-    const { data: lead, error } = await supabase
+    const body = await request.json();
+    
+    const { data, error } = await supabase
       .from('leads')
       .update({
         ...body,
         updated_at: new Date().toISOString()
       })
-      .eq('id', body.id)
-      .select()
-      .single();
+      .eq('id', id)
+      .select();
 
     if (error) {
       console.error('Error updating lead:', error);
@@ -168,7 +145,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(lead);
+    return NextResponse.json({
+      message: 'Lead updated successfully',
+      lead: data[0]
+    });
 
   } catch (error) {
     console.error('Error in PUT /api/leads:', error);
@@ -179,12 +159,12 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/leads - Delete lead
+// DELETE /api/leads/:id - Delete a lead
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-
+    
     if (!id) {
       return NextResponse.json(
         { error: 'Lead ID is required' },
@@ -205,7 +185,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ message: 'Lead deleted successfully' });
+    return NextResponse.json({
+      message: 'Lead deleted successfully'
+    });
 
   } catch (error) {
     console.error('Error in DELETE /api/leads:', error);

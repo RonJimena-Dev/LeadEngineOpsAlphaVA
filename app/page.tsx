@@ -17,6 +17,8 @@ export default function Home() {
     industries: []
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [currentJob, setCurrentJob] = useState<any>(null);
+  const [jobStatus, setJobStatus] = useState<string>('');
 
   useEffect(() => {
     // Load initial stats
@@ -30,15 +32,12 @@ export default function Home() {
         totalLeads: 1250,
         newThisWeek: 47,
         highQuality: 892,
-        industries: ['Real Estate', 'Healthcare', 'Legal', 'Finance', 'Marketing']
+        industries: ['Real Estate', 'Healthcare', 'Legal', 'Finance', 'Marketing'] as string[]
       });
     } catch (error) {
       console.error('Error loading stats:', error);
     }
   };
-
-  const [currentJob, setCurrentJob] = useState<any>(null);
-  const [jobStatus, setJobStatus] = useState<string>('');
 
   const handleSearch = async (searchParams: any) => {
     console.log('Search triggered:', searchParams);
@@ -188,9 +187,10 @@ export default function Home() {
             <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
               Advanced Lead Generation
             </h3>
-            
+
             {/* Basic Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Industry */}
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Industry</label>
                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -205,12 +205,10 @@ export default function Home() {
                   <option value="restaurant">Restaurant</option>
                   <option value="retail">Retail</option>
                   <option value="education">Education</option>
-                  <option value="manufacturing">Manufacturing</option>
-                  <option value="consulting">Consulting</option>
-                  <option value="non-profit">Non-Profit</option>
                 </select>
               </div>
-              
+
+              {/* Location */}
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Location</label>
                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -227,22 +225,24 @@ export default function Home() {
                   <option value="michigan">Michigan</option>
                 </select>
               </div>
-              
+
+              {/* Company Size */}
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Company Size</label>
                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option value="">Any Size</option>
-                  <option value="startup">Startup (1-10 employees)</option>
-                  <option value="small">Small Business (11-50 employees)</option>
-                  <option value="mid-market">Mid-Market (51-200 employees)</option>
-                  <option value="enterprise">Enterprise (200+ employees)</option>
+                  <option value="startup">Startup (1-10)</option>
+                  <option value="small">Small (11-50)</option>
+                  <option value="medium">Medium (51-200)</option>
+                  <option value="large">Large (201-1000)</option>
+                  <option value="enterprise">Enterprise (1000+)</option>
                 </select>
               </div>
             </div>
 
             {/* Advanced Filters Toggle */}
             <div className="text-center mb-6">
-              <button 
+              <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center mx-auto"
               >
@@ -253,134 +253,140 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Advanced Filters */}
+            {/* Conditional Advanced Filters */}
             {showAdvancedFilters && (
-              <div className="space-y-6 border-t pt-6">
-                {/* Revenue & Funding */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Revenue Range</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Revenue</option>
-                      <option value="under-1m">Under $1M</option>
-                      <option value="1m-10m">$1M - $10M</option>
-                      <option value="10m-100m">$10M - $100M</option>
-                      <option value="100m-plus">$100M+</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Funding Stage</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Funding</option>
-                      <option value="bootstrapped">Bootstrapped</option>
-                      <option value="seed">Seed</option>
-                      <option value="series-a">Series A</option>
-                      <option value="series-b">Series B</option>
-                      <option value="series-c-plus">Series C+</option>
-                    </select>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {/* Revenue Range */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Revenue Range</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Revenue</option>
+                    <option value="0-1m">$0 - $1M</option>
+                    <option value="1m-10m">$1M - $10M</option>
+                    <option value="10m-100m">$10M - $100M</option>
+                    <option value="100m-1b">$100M - $1B</option>
+                    <option value="1b+">$1B+</option>
+                  </select>
                 </div>
 
-                {/* Technology & Industry Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Technology Stack</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Technology</option>
-                      <option value="react">React/JavaScript</option>
-                      <option value="python">Python</option>
-                      <option value="nodejs">Node.js</option>
-                      <option value="aws">AWS</option>
-                      <option value="microsoft">Microsoft Stack</option>
-                      <option value="salesforce">Salesforce</option>
-                      <option value="wordpress">WordPress</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Industry Subcategory</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Subcategory</option>
-                      <option value="saas">SaaS</option>
-                      <option value="ecommerce">E-commerce</option>
-                      <option value="fintech">FinTech</option>
-                      <option value="healthtech">HealthTech</option>
-                      <option value="edtech">EdTech</option>
-                      <option value="proptech">PropTech</option>
-                      <option value="legaltech">LegalTech</option>
-                      <option value="marketing-tech">Marketing Technology</option>
-                    </select>
-                  </div>
+                {/* Employee Count */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Employee Count</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Count</option>
+                    <option value="1-10">1-10</option>
+                    <option value="11-50">11-50</option>
+                    <option value="51-200">51-200</option>
+                    <option value="201-1000">201-1000</option>
+                    <option value="1000+">1000+</option>
+                  </select>
                 </div>
 
-                {/* Contact & Company Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Contact Level</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Level</option>
-                      <option value="c-level">C-Level (CEO, CTO, CFO)</option>
-                      <option value="vp">VP Level</option>
-                      <option value="director">Director Level</option>
-                      <option value="manager">Manager Level</option>
-                      <option value="founder">Founder</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Company Age</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Age</option>
-                      <option value="new">New (0-1 years)</option>
-                      <option value="1-3">1-3 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="5-plus">5+ years</option>
-                    </select>
-                  </div>
+                {/* Funding Stage */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Funding Stage</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Stage</option>
+                    <option value="bootstrapped">Bootstrapped</option>
+                    <option value="seed">Seed</option>
+                    <option value="series-a">Series A</option>
+                    <option value="series-b">Series B</option>
+                    <option value="series-c">Series C+</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
+
+                {/* Technology Stack */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Technology Stack</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Tech</option>
+                    <option value="ai-ml">AI/ML</option>
+                    <option value="blockchain">Blockchain</option>
+                    <option value="cloud">Cloud Native</option>
+                    <option value="saas">SaaS</option>
+                    <option value="mobile">Mobile</option>
+                    <option value="web">Web</option>
+                  </select>
+                </div>
+
+                {/* Industry Subcategories */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Industry Subcategory</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Subcategory</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="industrial">Industrial</option>
+                    <option value="healthcare-tech">Healthcare Tech</option>
+                    <option value="fintech">FinTech</option>
+                    <option value="legal-tech">Legal Tech</option>
+                  </select>
                 </div>
 
                 {/* Geographic Targeting */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Metro Area</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Any Metro</option>
-                      <option value="miami">Miami Metro</option>
-                      <option value="orlando">Orlando Metro</option>
-                      <option value="tampa">Tampa Bay Metro</option>
-                      <option value="jacksonville">Jacksonville Metro</option>
-                      <option value="new-york">New York Metro</option>
-                      <option value="los-angeles">Los Angeles Metro</option>
-                      <option value="chicago">Chicago Metro</option>
-                      <option value="dallas">Dallas Metro</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Radius (miles)</label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="25">25 miles</option>
-                      <option value="50">50 miles</option>
-                      <option value="100">100 miles</option>
-                      <option value="250">250 miles</option>
-                      <option value="500">500 miles</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Geographic Targeting</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Geography</option>
+                    <option value="urban">Urban</option>
+                    <option value="suburban">Suburban</option>
+                    <option value="rural">Rural</option>
+                    <option value="coastal">Coastal</option>
+                    <option value="mountain">Mountain</option>
+                  </select>
                 </div>
 
-                {/* Custom Keywords */}
+                {/* Contact Level */}
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">Custom Keywords</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., 'AI', 'blockchain', 'remote-first', 'B2B SaaS'"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">Add specific keywords to narrow your search</p>
+                  <label className="block text-gray-700 font-medium mb-2">Contact Level</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Level</option>
+                    <option value="c-level">C-Level</option>
+                    <option value="vp-director">VP/Director</option>
+                    <option value="manager">Manager</option>
+                    <option value="owner">Owner</option>
+                    <option value="decision-maker">Decision Maker</option>
+                  </select>
+                </div>
+
+                {/* Company Age */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Company Age</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Any Age</option>
+                    <option value="0-2">0-2 years</option>
+                    <option value="3-5">3-5 years</option>
+                    <option value="6-10">6-10 years</option>
+                    <option value="11-20">11-20 years</option>
+                    <option value="20+">20+ years</option>
+                  </select>
+                </div>
+
+                {/* Radius */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Radius (miles)</label>
+                  <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="25">25 miles</option>
+                    <option value="50">50 miles</option>
+                    <option value="100">100 miles</option>
+                    <option value="250">250 miles</option>
+                    <option value="500">500 miles</option>
+                  </select>
                 </div>
               </div>
             )}
+
+            {/* Custom Keywords */}
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Custom Keywords</label>
+              <input 
+                type="text" 
+                placeholder="e.g., 'AI', 'blockchain', 'remote-first', 'B2B SaaS'"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">Add specific keywords to narrow your search</p>
+            </div>
 
             {/* Search Button */}
             <div className="text-center mt-8">
@@ -409,7 +415,7 @@ export default function Home() {
               {/* Job Status Display */}
               {jobStatus && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-center space-x-2">
                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                     <span className="text-blue-800 font-medium">{jobStatus}</span>
                   </div>
