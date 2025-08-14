@@ -5,7 +5,12 @@ import Image from 'next/image';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    totalLeads: number;
+    newThisWeek: number;
+    highQuality: number;
+    industries: string[];
+  }>({
     totalLeads: 0,
     newThisWeek: 0,
     highQuality: 0,
