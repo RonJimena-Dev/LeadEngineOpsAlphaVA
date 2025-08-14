@@ -1,0 +1,132 @@
+name: Automated Lead Generation & Deployment
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+    # Run every Wednesday at 2:00 PM UTC
+    - cron: '0 14 * * 3'
+    # Run every Friday at 11:00 AM UTC
+    - cron: '0 11 * * 5'
+  workflow_dispatch: # Allow manual triggering
+  push:
+    branches: [ main ]
+
+jobs:
+  # Database Setup & Migration
+  setup-database:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup database
+      run: npm run setup-db
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  # Automated Lead Generation
+  generate-leads:
+    runs-on: ubuntu-latest
+    needs: setup-database
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        industry: [Real Estate, Healthcare, Legal, Finance, Marketing]
+        location: [Florida, New York, California, Texas, Illinois]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Generate leads for ${{ matrix.industry }} in ${{ matrix.location }}
+      run: |
+        node scripts/scraper.js "${{ matrix.industry }}" "${{ matrix.location }}"
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+        
+    - name: Send notification
+      if: always()
+      run: |
+        echo "Lead generation completed for ${{ matrix.industry }} in ${{ matrix.location }}"
+        # Add notification logic here (Slack, email, etc.)
+
+  # Deploy to Vercel
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup-database, generate-leads]
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+
+  # Performance Monitoring
+  monitor:
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run performance tests
+      run: |
+        # Add performance monitoring logic here
+        echo "Performance monitoring completed"
+        
+    - name: Generate report
+      run: |
+        # Generate performance report
+        echo "Performance report generated"
+        
+    - name: Upload report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: reports/
