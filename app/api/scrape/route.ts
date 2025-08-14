@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { EnhancedLeadScraper } from '../../../scripts/scraper';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Store active scraping jobs (in production, use Redis or database)
+const activeJobs = new Map();
 
 // POST /api/scrape - Trigger lead scraping
 export async function POST(request: NextRequest) {
@@ -18,6 +22,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create job ID
+    const jobId = `scrape_${Date.now()}`;
+    
     // Log scraping request
     const { error: logError } = await supabase
       .from('scraping_logs')
@@ -36,26 +43,18 @@ export async function POST(request: NextRequest) {
       console.error('Error logging scraping session:', logError);
     }
 
-    // In a real implementation, you would:
-    // 1. Queue the scraping job
-    // 2. Return immediately with job ID
-    // 3. Process scraping in background
-    
-    // For now, we'll simulate the process
-    const jobId = `scrape_${Date.now()}`;
-    
-    // Simulate scraping results (replace with actual scraping logic)
-    const mockResults = {
+    // Start scraping in background
+    startScrapingJob(jobId, body);
+
+    return NextResponse.json({
       jobId,
-      status: 'queued',
-      message: 'Scraping job queued successfully',
+      status: 'started',
+      message: 'Scraping job started successfully',
       estimatedDuration: '5-10 minutes',
       industry: body.industry,
       location: body.location,
       sources: body.sources || ['google_maps', 'linkedin']
-    };
-
-    return NextResponse.json(mockResults, { status: 202 });
+    }, { status: 202 });
 
   } catch (error) {
     console.error('Error in POST /api/scrape:', error);
@@ -63,6 +62,62 @@ export async function POST(request: NextRequest) {
       { error: 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+// Background scraping function
+async function startScrapingJob(jobId: string, params: any) {
+  try {
+    const scraper = new EnhancedLeadScraper();
+    
+    // Store job info
+    activeJobs.set(jobId, {
+      status: 'running',
+      progress: 0,
+      startedAt: new Date(),
+      params
+    });
+
+    // Run scraper
+    const results = await scraper.scrapeIndustry(params.industry, params.location);
+    
+    // Update job status
+    activeJobs.set(jobId, {
+      status: 'completed',
+      progress: 100,
+      completedAt: new Date(),
+      results
+    });
+
+    // Update scraping log
+    await supabase
+      .from('scraping_logs')
+      .update({
+        status: 'completed',
+        leads_found: results.totalLeads,
+        leads_saved: results.savedLeads,
+        errors: results.errors
+      })
+      .eq('session_date', new Date().toISOString().split('T')[0]);
+
+  } catch (error) {
+    console.error(`Error in scraping job ${jobId}:`, error);
+    
+    // Update job status
+    activeJobs.set(jobId, {
+      status: 'failed',
+      error: error.message,
+      completedAt: new Date()
+    });
+
+    // Update scraping log
+    await supabase
+      .from('scraping_logs')
+      .update({
+        status: 'failed',
+        errors: 1
+      })
+      .eq('session_date', new Date().toISOString().split('T')[0]);
   }
 }
 
@@ -79,25 +134,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // In a real implementation, you would:
-    // 1. Check the actual job status from your queue system
-    // 2. Return real-time progress updates
+    const job = activeJobs.get(jobId);
     
-    // For now, return mock status
-    const mockStatus = {
-      jobId,
-      status: 'completed',
-      progress: 100,
-      leadsFound: 25,
-      leadsSaved: 23,
-      errors: 2,
-      startedAt: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
-      completedAt: new Date().toISOString(),
-      industry: 'Real Estate',
-      location: 'Florida'
-    };
+    if (!job) {
+      return NextResponse.json(
+        { error: 'Job not found' },
+        { status: 404 }
+      );
+    }
 
-    return NextResponse.json(mockStatus);
+    return NextResponse.json(job);
 
   } catch (error) {
     console.error('Error in GET /api/scrape/status:', error);
@@ -121,11 +167,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // In a real implementation, you would:
-    // 1. Cancel the actual job from your queue system
-    // 2. Clean up any running processes
+    const job = activeJobs.get(jobId);
     
-    // For now, return success
+    if (!job) {
+      return NextResponse.json(
+        { error: 'Job not found' },
+        { status: 404 }
+      );
+    }
+
+    // Cancel job (in production, implement proper cancellation)
+    activeJobs.delete(jobId);
+
     return NextResponse.json({
       message: 'Scraping job cancelled successfully',
       jobId

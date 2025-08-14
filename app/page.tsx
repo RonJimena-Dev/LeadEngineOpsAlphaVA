@@ -32,20 +32,66 @@ export default function Home() {
     }
   };
 
+  const [currentJob, setCurrentJob] = useState<any>(null);
+  const [jobStatus, setJobStatus] = useState<string>('');
+
   const handleSearch = async (searchParams: any) => {
-    // This would trigger the scraping process
     console.log('Search triggered:', searchParams);
     setIsLoading(true);
+    setJobStatus('Starting scraping job...');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Search completed:', searchParams);
+      // Call the actual scraping API
+      const response = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchParams),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setCurrentJob(result);
+      setJobStatus('Scraping job started! Checking progress...');
+      
+      // Poll for job status
+      pollJobStatus(result.jobId);
+      
     } catch (error) {
       console.error('Search error:', error);
+      setJobStatus('Error starting scraping job');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const pollJobStatus = async (jobId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/scrape/status?jobId=${jobId}`);
+        if (response.ok) {
+          const status = await response.json();
+          setJobStatus(`Status: ${status.status}${status.progress ? ` - ${status.progress}%` : ''}`);
+          
+          if (status.status === 'completed' || status.status === 'failed') {
+            clearInterval(interval);
+            if (status.status === 'completed') {
+              setJobStatus(`✅ Scraping completed! Found ${status.results?.totalLeads || 0} leads`);
+              // Refresh stats
+              loadStats();
+            } else {
+              setJobStatus(`❌ Scraping failed: ${status.error}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+      }
+    }, 2000); // Check every 2 seconds
   };
 
   return (
@@ -352,6 +398,21 @@ export default function Home() {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                     <span>Searching multiple sources...</span>
                   </div>
+                </div>
+              )}
+              
+              {/* Job Status Display */}
+              {jobStatus && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    <span className="text-blue-800 font-medium">{jobStatus}</span>
+                  </div>
+                  {currentJob && (
+                    <div className="mt-2 text-sm text-blue-600">
+                      Job ID: {currentJob.jobId}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
