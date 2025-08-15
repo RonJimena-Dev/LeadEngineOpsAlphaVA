@@ -16,13 +16,6 @@ const activeJobs = new Map();
 // POST /api/scrape - Trigger lead scraping
 export async function POST(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
-      );
-    }
-
     const body = await request.json();
     
     // Validate required fields
@@ -36,23 +29,32 @@ export async function POST(request: NextRequest) {
     // Create job ID
     const jobId = `scrape_${Date.now()}`;
     
-    // Log scraping request
-    const { error: logError } = await supabase
-      .from('scraping_logs')
-      .insert({
-        session_date: new Date().toISOString(),
-        industry: body.industry,
-        location: body.location,
-        search_terms: body.customSearchTerms || [],
-        status: 'started',
-        leads_found: 0,
-        leads_saved: 0,
-        errors: 0
-      });
+    // Try to log to database if available
+    if (supabase) {
+      try {
+        const { error: logError } = await supabase
+          .from('scraping_logs')
+          .insert({
+            session_date: new Date().toISOString(),
+            industry: body.industry,
+            location: body.location,
+            search_terms: body.customSearchTerms || [],
+            status: 'started',
+            leads_found: 0,
+            leads_saved: 0,
+            errors: 0
+          });
 
-    if (logError) {
-      console.error('Error logging scraping session:', logError);
+        if (logError) {
+          console.error('Error logging scraping session:', logError);
+        }
+      } catch (dbError) {
+        console.error('Database logging failed:', dbError);
+        // Continue without database logging
+      }
     }
+
+
 
     // For now, simulate scraping (in production, this would trigger a background job)
     // The actual scraping will be handled by GitHub Actions or a separate service

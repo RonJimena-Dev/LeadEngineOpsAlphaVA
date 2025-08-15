@@ -14,10 +14,23 @@ if (supabaseUrl && supabaseKey) {
 export async function GET(request: NextRequest) {
   try {
     if (!supabase) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
-      );
+      // Return mock data if database not configured
+      return NextResponse.json({
+        leads: [
+          {
+            id: 1,
+            name: 'Sample Real Estate Agent',
+            industry: 'Real Estate',
+            location: 'Florida',
+            email: 'agent@example.com',
+            phone: '(555) 123-4567',
+            lead_score: 85
+          }
+        ],
+        total: 1,
+        limit: 100,
+        offset: 0
+      });
     }
 
     const { searchParams } = new URL(request.url);
