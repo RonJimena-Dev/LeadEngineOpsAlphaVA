@@ -310,9 +310,7 @@ export default function Home() {
                       <span className={selectedIndustries.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
                         {selectedIndustries.length > 0 ? `${selectedIndustries.length} selected` : 'Select Industries'}
                       </span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <span className="text-gray-400 text-sm">▼</span>
                     </button>
                     
                     {showIndustryDropdown && (
@@ -399,9 +397,7 @@ export default function Home() {
                       <span className={selectedLocations.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
                         {selectedLocations.length > 0 ? `${selectedLocations.length} selected` : 'Select Locations'}
                       </span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <span className="text-gray-400 text-sm">▼</span>
                     </button>
                     
                     {showLocationDropdown && (
@@ -488,9 +484,7 @@ export default function Home() {
                       <span className={selectedJobTitles.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
                         {selectedJobTitles.length > 0 ? `${selectedJobTitles.length} selected` : 'Select Job Titles'}
                       </span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <span className="text-gray-400 text-sm">▼</span>
                     </button>
                     
                     {showJobTitleDropdown && (
@@ -577,9 +571,7 @@ export default function Home() {
                       <span className={selectedCompanySizes.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
                         {selectedCompanySizes.length > 0 ? `${selectedCompanySizes.length} selected` : 'Select Company Sizes'}
                       </span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <span className="text-gray-400 text-sm">▼</span>
                     </button>
                     
                     {showCompanySizeDropdown && (
@@ -652,10 +644,7 @@ export default function Home() {
                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                  className="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center mx-auto"
                >
-                 {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
-                 <svg className={`ml-2 w-4 h-4 transform transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                 </svg>
+                 {showAdvancedFilters ? '🔽 Hide' : '🔼 Show'} Advanced Filters
                </button>
                
                {/* Clear All Filters Button */}

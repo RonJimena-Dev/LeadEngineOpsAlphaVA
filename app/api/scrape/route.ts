@@ -27,10 +27,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validate required fields
-    if (!body.industry || !body.location) {
+    // Validate required fields - support both old format and new array format
+    const industries = body.industries || (body.industry ? [body.industry] : []);
+    const locations = body.locations || (body.location ? [body.location] : []);
+    const jobTitles = body.jobTitles || [];
+    const companySizes = body.companySizes || [];
+    
+    if (industries.length === 0 && locations.length === 0 && jobTitles.length === 0 && companySizes.length === 0) {
       return NextResponse.json(
-        { error: 'Industry and location are required' },
+        { error: 'At least one filter option is required (industries, locations, jobTitles, or companySizes)' },
         { status: 400 }
       );
     }
@@ -45,9 +50,9 @@ export async function POST(request: NextRequest) {
           .from('scraping_logs')
           .insert({
             session_date: new Date().toISOString(),
-            industry: body.industry,
-            location: body.location,
-            search_terms: body.customSearchTerms || [],
+            industry: industries.join(', '),
+            location: locations.join(', '),
+            search_terms: [...jobTitles, ...companySizes],
             status: 'started',
             leads_found: 0,
             leads_saved: 0,
@@ -72,8 +77,10 @@ export async function POST(request: NextRequest) {
       status: 'queued',
       message: 'Scraping job queued for background processing',
       estimatedDuration: '5-10 minutes',
-      industry: body.industry,
-      location: body.location,
+      industries: industries,
+      locations: locations,
+      jobTitles: jobTitles,
+      companySizes: companySizes,
       sources: body.sources || ['google_maps', 'linkedin']
     };
 
