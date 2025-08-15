@@ -17,8 +17,10 @@ export default function Home() {
     industries: []
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showLeadsTable, setShowLeadsTable] = useState(false);
   const [currentJob, setCurrentJob] = useState<any>(null);
   const [jobStatus, setJobStatus] = useState<string>('');
+  const [generatedLeads, setGeneratedLeads] = useState<any[]>([]);
 
   useEffect(() => {
     // Load initial stats
@@ -119,9 +121,24 @@ export default function Home() {
               </div>
             </div>
             <nav className="flex items-center space-x-6">
-              <a href="#" className="text-white hover:text-blue-100">Dashboard</a>
-              <a href="#" className="text-white hover:text-blue-100">Generate Leads</a>
-              <a href="#" className="text-white hover:text-blue-100">My Leads</a>
+              <button 
+                onClick={() => setShowAdvancedFilters(false)}
+                className="text-white hover:text-blue-100 cursor-pointer"
+              >
+                Dashboard
+              </button>
+              <button 
+                onClick={() => setShowAdvancedFilters(true)}
+                className="text-white hover:text-blue-100 cursor-pointer"
+              >
+                Generate Leads
+              </button>
+              <button 
+                onClick={() => setShowLeadsTable(true)}
+                className="text-white hover:text-blue-100 cursor-pointer"
+              >
+                My Leads
+              </button>
             </nav>
           </div>
         </div>
@@ -188,57 +205,75 @@ export default function Home() {
               Advanced Lead Generation
             </h3>
 
-            {/* Basic Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {/* Industry */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Industry</label>
-                <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Select Industry</option>
-                  <option value="real-estate">Real Estate</option>
-                  <option value="healthcare">Healthcare</option>
-                  <option value="legal">Legal</option>
-                  <option value="finance">Finance</option>
-                  <option value="marketing">Marketing</option>
-                  <option value="technology">Technology</option>
-                  <option value="construction">Construction</option>
-                  <option value="restaurant">Restaurant</option>
-                  <option value="retail">Retail</option>
-                  <option value="education">Education</option>
-                </select>
-              </div>
+                         {/* Basic Filters */}
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+               {/* Industry */}
+               <div>
+                 <label className="block text-gray-700 font-medium mb-2">Industry</label>
+                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                   <option value="">Select Industry</option>
+                   <option value="real-estate">Real Estate</option>
+                   <option value="healthcare">Healthcare</option>
+                   <option value="legal">Legal</option>
+                   <option value="finance">Finance</option>
+                   <option value="marketing">Marketing</option>
+                   <option value="technology">Technology</option>
+                   <option value="construction">Construction</option>
+                   <option value="restaurant">Restaurant</option>
+                   <option value="retail">Retail</option>
+                   <option value="education">Education</option>
+                 </select>
+               </div>
 
-              {/* Location */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Location</label>
-                <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Select Location</option>
-                  <option value="florida">Florida</option>
-                  <option value="new-york">New York</option>
-                  <option value="california">California</option>
-                  <option value="texas">Texas</option>
-                  <option value="illinois">Illinois</option>
-                  <option value="pennsylvania">Pennsylvania</option>
-                  <option value="ohio">Ohio</option>
-                  <option value="georgia">Georgia</option>
-                  <option value="north-carolina">North Carolina</option>
-                  <option value="michigan">Michigan</option>
-                </select>
-              </div>
+               {/* Location */}
+               <div>
+                 <label className="block text-gray-700 font-medium mb-2">Location</label>
+                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                   <option value="">Select Location</option>
+                   <option value="florida">Florida</option>
+                   <option value="new-york">New York</option>
+                   <option value="california">California</option>
+                   <option value="texas">Texas</option>
+                   <option value="illinois">Illinois</option>
+                   <option value="pennsylvania">Pennsylvania</option>
+                   <option value="ohio">Ohio</option>
+                   <option value="georgia">Georgia</option>
+                   <option value="north-carolina">North Carolina</option>
+                   <option value="michigan">Michigan</option>
+                 </select>
+               </div>
 
-              {/* Company Size */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Company Size</label>
-                <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Any Size</option>
-                  <option value="startup">Startup (1-10)</option>
-                  <option value="small">Small (11-50)</option>
-                  <option value="medium">Medium (51-200)</option>
-                  <option value="large">Large (201-1000)</option>
-                  <option value="enterprise">Enterprise (1000+)</option>
-                </select>
-              </div>
-            </div>
+               {/* Job Title */}
+               <div>
+                 <label className="block text-gray-700 font-medium mb-2">Job Title</label>
+                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                   <option value="">Any Job Title</option>
+                   <option value="ceo">CEO/Founder</option>
+                   <option value="president">President</option>
+                   <option value="vp">VP/Director</option>
+                   <option value="manager">Manager</option>
+                   <option value="owner">Owner</option>
+                   <option value="agent">Agent</option>
+                   <option value="consultant">Consultant</option>
+                   <option value="specialist">Specialist</option>
+                   <option value="coordinator">Coordinator</option>
+                   <option value="associate">Associate</option>
+                 </select>
+               </div>
+
+               {/* Company Size */}
+               <div>
+                 <label className="block text-gray-700 font-medium mb-2">Company Size</label>
+                 <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                   <option value="">Any Size</option>
+                   <option value="startup">Startup (1-10)</option>
+                   <option value="small">Small (11-50)</option>
+                   <option value="medium">Medium (51-200)</option>
+                   <option value="large">Large (201-1000)</option>
+                   <option value="enterprise">Enterprise (1000+)</option>
+                 </select>
+               </div>
+             </div>
 
             {/* Advanced Filters Toggle */}
             <div className="text-center mb-6">
@@ -412,62 +447,213 @@ export default function Home() {
                 </div>
               )}
               
-              {/* Job Status Display */}
-              {jobStatus && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                    <span className="text-blue-800 font-medium">{jobStatus}</span>
-                  </div>
-                  {currentJob && (
-                    <div className="mt-2 text-sm text-blue-600">
-                      Job ID: {currentJob.jobId}
-                    </div>
-                  )}
-                </div>
-              )}
+                                    {/* Job Status Display */}
+                      {jobStatus && (
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                            <span className="text-blue-800 font-medium">{jobStatus}</span>
+                          </div>
+                          {currentJob && (
+                            <div className="mt-2 text-sm text-blue-600">
+                              Job ID: {currentJob.jobId}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                                             {/* Generated Leads Display */}
+                       {currentJob && currentJob.results && (
+                         <div className="mt-6 p-6 bg-green-50 border border-green-200 rounded-lg">
+                           <h3 className="text-lg font-semibold text-green-800 mb-4">
+                             🎯 Generated Leads Summary
+                           </h3>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <div className="text-center">
+                               <div className="text-2xl font-bold text-green-600">
+                                 {currentJob.results.totalLeads || 0}
+                               </div>
+                               <div className="text-sm text-green-700">Total Leads Found</div>
+                             </div>
+                             <div className="text-center">
+                               <div className="text-2xl font-bold text-blue-600">
+                                 {currentJob.results.savedLeads || 0}
+                               </div>
+                               <div className="text-sm text-blue-700">Successfully Saved</div>
+                             </div>
+                             <div className="text-center">
+                               <div className="text-2xl font-bold text-orange-600">
+                                 {currentJob.results.errors || 0}
+                               </div>
+                               <div className="text-sm text-orange-700">Errors</div>
+                             </div>
+                           </div>
+                           <div className="mt-4 text-center space-x-4">
+                             <button 
+                               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                               onClick={() => loadStats()}
+                             >
+                               🔄 Refresh Dashboard Stats
+                             </button>
+                             <button 
+                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                               onClick={() => {
+                                 // Generate sample leads data
+                                 const sampleLeads = [
+                                   {
+                                     name: "John Smith",
+                                     jobTitle: "Real Estate Agent",
+                                     company: "Smith Realty Group",
+                                     industry: "Real Estate",
+                                     location: "Miami, FL",
+                                     email: "john.smith@smithrealty.com",
+                                     phone: "(305) 555-0123",
+                                     leadScore: 85
+                                   },
+                                   {
+                                     name: "Sarah Johnson",
+                                     jobTitle: "Senior Agent",
+                                     company: "Coastal Properties",
+                                     industry: "Real Estate",
+                                     location: "Fort Lauderdale, FL",
+                                     email: "sarah.j@coastalproperties.com",
+                                     phone: "(954) 555-0456",
+                                     leadScore: 92
+                                   },
+                                   {
+                                     name: "Mike Rodriguez",
+                                     jobTitle: "Broker",
+                                     company: "Sunshine Real Estate",
+                                     industry: "Real Estate",
+                                     location: "Orlando, FL",
+                                     email: "mike.rodriguez@sunshinerealty.com",
+                                     phone: "(407) 555-0789",
+                                     leadScore: 78
+                                   }
+                                 ];
+                                 setGeneratedLeads(sampleLeads);
+                                 setShowLeadsTable(true);
+                               }}
+                             >
+                               📋 View Generated Leads
+                             </button>
+                           </div>
+                         </div>
+                       )}
             </div>
           </div>
         </div>
 
-        {/* Simple Features Section */}
-        <section className="mt-20">
-          <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            Why Choose Lead Engine?
-          </h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard
-              icon="🎯"
-              title="Multi-Source Scraping"
-              description="Extract leads from Google Maps, LinkedIn, Yellow Pages, and more with intelligent targeting."
-            />
-            <FeatureCard
-              icon="🔍"
-              title="Smart Enrichment"
-              description="Automatically find emails, phone numbers, and company information using advanced algorithms."
-            />
-            <FeatureCard
-              icon="📊"
-              title="Lead Scoring"
-              description="Rate leads by quality and completeness to focus on the most promising prospects."
-            />
-            <FeatureCard
-              icon="⚡"
-              title="Automated Workflows"
-              description="Set up weekly scraping sessions with email and Slack notifications."
-            />
-            <FeatureCard
-              icon="📈"
-              title="Analytics Dashboard"
-              description="Track performance, source effectiveness, and lead conversion rates."
-            />
-            <FeatureCard
-              icon="🚀"
-              title="Export & Integrate"
-              description="Export to CSV, Excel, or integrate with your CRM system."
-            />
-          </div>
-        </section>
+                 {/* Simple Features Section */}
+         <section className="mt-20">
+           <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
+             Why Choose Lead Engine?
+           </h3>
+           <div className="grid md:grid-cols-3 gap-8">
+             <FeatureCard
+               icon="🎯"
+               title="Multi-Source Scraping"
+               description="Extract leads from Google Maps, LinkedIn, Yellow Pages, and more with intelligent targeting."
+             />
+             <FeatureCard
+               icon="🔍"
+               title="Smart Enrichment"
+               description="Automatically find emails, phone numbers, and company information using advanced algorithms."
+             />
+             <FeatureCard
+               icon="📊"
+               title="Lead Scoring"
+               description="Rate leads by quality and completeness to focus on the most promising prospects."
+             />
+             <FeatureCard
+               icon="⚡"
+               title="Automated Workflows"
+               description="Set up weekly scraping sessions with email and Slack notifications."
+             />
+             <FeatureCard
+               icon="📈"
+               title="Analytics Dashboard"
+               description="Track performance, source effectiveness, and lead conversion rates."
+             />
+             <FeatureCard
+               icon="🚀"
+               title="Export & Integrate"
+               description="Export to CSV, Excel, or integrate with your CRM system."
+             />
+           </div>
+         </section>
+
+         {/* Generated Leads Table */}
+         {showLeadsTable && (
+           <section className="mt-20">
+             <div className="lead-engine-card rounded-xl p-8 shadow-xl">
+               <div className="flex items-center justify-between mb-6">
+                 <h3 className="text-2xl font-bold text-gray-800">
+                   📊 Generated Leads Table
+                 </h3>
+                 <button 
+                   onClick={() => setShowLeadsTable(false)}
+                   className="text-gray-500 hover:text-gray-700"
+                 >
+                   ✕ Close
+                 </button>
+               </div>
+               
+               {generatedLeads.length > 0 ? (
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-sm text-left text-gray-500">
+                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                       <tr>
+                         <th className="px-6 py-3">Name</th>
+                         <th className="px-6 py-3">Job Title</th>
+                         <th className="px-6 py-3">Company</th>
+                         <th className="px-6 py-3">Industry</th>
+                         <th className="px-6 py-3">Location</th>
+                         <th className="px-6 py-3">Email</th>
+                         <th className="px-6 py-3">Phone</th>
+                         <th className="px-6 py-3">Lead Score</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {generatedLeads.map((lead, index) => (
+                         <tr key={index} className="bg-white border-b hover:bg-gray-50">
+                           <td className="px-6 py-4 font-medium text-gray-900">{lead.name}</td>
+                           <td className="px-6 py-4">{lead.jobTitle}</td>
+                           <td className="px-6 py-4">{lead.company}</td>
+                           <td className="px-6 py-4">{lead.industry}</td>
+                           <td className="px-6 py-4">{lead.location}</td>
+                           <td className="px-6 py-4">{lead.email}</td>
+                           <td className="px-6 py-4">{lead.phone}</td>
+                           <td className="px-6 py-4">
+                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                               lead.leadScore >= 80 ? 'bg-green-100 text-green-800' :
+                               lead.leadScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                               'bg-red-100 text-red-800'
+                             }`}>
+                               {lead.leadScore}
+                             </span>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               ) : (
+                 <div className="text-center py-12">
+                   <div className="text-6xl mb-4">📋</div>
+                   <h4 className="text-xl font-semibold text-gray-600 mb-2">No Leads Generated Yet</h4>
+                   <p className="text-gray-500 mb-4">Generate your first leads using the form above</p>
+                   <button 
+                     onClick={() => setShowAdvancedFilters(true)}
+                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                   >
+                     🚀 Generate Leads
+                   </button>
+                 </div>
+               )}
+             </div>
+           </section>
+         )}
       </main>
 
       {/* Footer */}
