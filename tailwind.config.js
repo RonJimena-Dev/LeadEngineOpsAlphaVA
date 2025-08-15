@@ -5,6 +5,7 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       backgroundImage: {
@@ -22,6 +23,8 @@ module.exports = {
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
+        'mobile-padding': '1rem',
+        'mobile-margin': '0.75rem',
       },
       borderRadius: {
         'xl': '0.75rem',
