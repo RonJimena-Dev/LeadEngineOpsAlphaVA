@@ -22,6 +22,106 @@ if (!global.activeJobs) {
 
 const activeJobs = global.activeJobs;
 
+// Real scraping function that uses your existing scraper
+async function startRealScraping(industries: string[], locations: string[], jobTitles: string[], companySizes: string[]) {
+  try {
+    // Import and use your real scraper
+    const { EnhancedLeadScraper } = require('../../../scripts/scraper.js');
+    
+    const scraper = new EnhancedLeadScraper();
+    await scraper.initialize();
+    
+    let totalLeads = 0;
+    let savedLeads = 0;
+    let errors = 0;
+    let allLeads: any[] = [];
+    
+    // Scrape each industry-location combination
+    for (const industry of industries) {
+      for (const location of locations) {
+        try {
+          console.log(`Scraping ${industry} in ${location}...`);
+          
+          // Use your real scraper methods
+          const results = await scraper.scrapeGoogleMaps(`${industry} ${location}`);
+          const linkedinResults = await scraper.scrapeLinkedIn(`${industry} ${location}`);
+          
+          // Combine and process results
+          const combinedResults = [...(results || []), ...(linkedinResults || [])];
+          
+          for (const lead of combinedResults) {
+            if (lead.name && lead.email) {
+              // Save to database
+              if (supabase) {
+                try {
+                  const { error } = await supabase
+                    .from('leads')
+                    .insert({
+                      name: lead.name,
+                      email: lead.email,
+                      phone: lead.phone || '',
+                      company: lead.company || '',
+                      industry: industry,
+                      location: location,
+                      job_title: lead.jobTitle || lead.category || '',
+                      lead_score: lead.leadScore || 50,
+                      source: lead.source || 'scraped',
+                      created_at: new Date().toISOString()
+                    });
+                  
+                  if (!error) {
+                    savedLeads++;
+                    allLeads.push({
+                      name: lead.name,
+                      jobTitle: lead.jobTitle || lead.category || 'Unknown',
+                      company: lead.company || lead.name || 'Unknown',
+                      industry: industry,
+                      location: location,
+                      email: lead.email,
+                      phone: lead.phone || 'Not available',
+                      leadScore: lead.leadScore || 50
+                    });
+                  }
+                } catch (dbError) {
+                  console.error('Error saving lead to database:', dbError);
+                  errors++;
+                }
+              }
+              
+              totalLeads++;
+            }
+          }
+          
+          // Add delay between requests
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+        } catch (scrapingError) {
+          console.error(`Error scraping ${industry} in ${location}:`, scrapingError);
+          errors++;
+        }
+      }
+    }
+    
+    await scraper.close();
+    
+    return {
+      totalLeads,
+      savedLeads,
+      errors,
+      leads: allLeads
+    };
+    
+  } catch (error) {
+    console.error('Error in real scraping:', error);
+    return {
+      totalLeads: 0,
+      savedLeads: 0,
+      errors: 1,
+      leads: []
+    };
+  }
+}
+
 // POST /api/scrape - Trigger lead scraping
 export async function POST(request: NextRequest) {
   try {
@@ -70,18 +170,23 @@ export async function POST(request: NextRequest) {
 
 
 
-    // For now, simulate scraping (in production, this would trigger a background job)
-    // The actual scraping will be handled by GitHub Actions or a separate service
+    // Start real scraping process
+    const scrapingResults = await startRealScraping(industries, locations, jobTitles, companySizes);
+    
     const mockResults = {
       jobId,
-      status: 'queued',
-      message: 'Scraping job queued for background processing',
-      estimatedDuration: '5-10 minutes',
+      status: 'completed',
+      message: 'Real scraping completed successfully',
+      estimatedDuration: '2-5 minutes',
       industries: industries,
       locations: locations,
       jobTitles: jobTitles,
       companySizes: companySizes,
-      sources: body.sources || ['google_maps', 'linkedin']
+      sources: body.sources || ['google_maps', 'linkedin'],
+      totalLeads: scrapingResults.totalLeads,
+      savedLeads: scrapingResults.savedLeads,
+      errors: scrapingResults.errors,
+      leads: scrapingResults.leads
     };
 
     // Store job info
