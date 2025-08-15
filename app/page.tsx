@@ -65,6 +65,13 @@ export default function Home() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking inside the dropdown
+      if (target.closest('.dropdown-container')) {
+        return;
+      }
+      
       if (showIndustryDropdown) {
         setShowIndustryDropdown(false);
       }
@@ -204,26 +211,26 @@ export default function Home() {
                 <p className="text-blue-100 text-sm">Professional Lead Generation Platform</p>
               </div>
             </div>
-            <nav className="flex items-center space-x-6">
-              <button 
-                onClick={() => setShowAdvancedFilters(false)}
-                className="text-white hover:text-blue-100 cursor-pointer font-medium"
-              >
-                Dashboard
-              </button>
-              <button 
-                onClick={() => setShowAdvancedFilters(true)}
-                className="text-white hover:text-blue-100 cursor-pointer font-medium"
-              >
-                Generate Leads
-              </button>
-              <button 
-                onClick={() => setShowLeadsTable(true)}
-                className="text-white hover:text-blue-100 cursor-pointer font-medium"
-              >
-                My Leads
-              </button>
-            </nav>
+                                <nav className="flex items-center space-x-6">
+                      <button 
+                        onClick={() => setShowAdvancedFilters(false)}
+                        className="px-4 py-2 text-white hover:text-blue-100 hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+                      >
+                        Dashboard
+                      </button>
+                      <button 
+                        onClick={() => setShowAdvancedFilters(true)}
+                        className="px-4 py-2 text-white hover:text-blue-100 hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+                      >
+                        Generate Leads
+                      </button>
+                      <button 
+                        onClick={() => setShowLeadsTable(true)}
+                        className="px-4 py-2 text-white hover:text-blue-100 hover:bg-white/10 rounded-lg transition-all duration-200 font-medium"
+                      >
+                        My Leads
+                      </button>
+                    </nav>
           </div>
         </div>
       </header>
@@ -291,58 +298,72 @@ export default function Home() {
 
                          {/* Basic Filters */}
              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-               {/* Industry */}
-               <div>
-                 <label className="block text-gray-700 font-medium mb-2">Industry</label>
-                 <div className="relative">
-                   <button
-                     type="button"
-                     onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
-                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
-                   >
-                     <span className={selectedIndustries.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
-                       {selectedIndustries.length > 0 ? `${selectedIndustries.length} selected` : 'Select Industries'}
-                     </span>
-                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                     </svg>
-                   </button>
-                   
-                   {showIndustryDropdown && (
-                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                       <div className="p-2">
-                         <input
-                           type="text"
-                           placeholder="Search industries..."
-                           className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                           value={industrySearch}
-                           onChange={(e) => setIndustrySearch(e.target.value)}
-                         />
-                       </div>
-                       <div className="max-h-48 overflow-auto">
-                         {industries
-                           .filter(industry => industry.toLowerCase().includes(industrySearch.toLowerCase()))
-                           .map((industry) => (
-                             <label key={industry} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
-                               <input
-                                 type="checkbox"
-                                 checked={selectedIndustries.includes(industry)}
-                                 onChange={(e) => {
-                                   if (e.target.checked) {
-                                     setSelectedIndustries([...selectedIndustries, industry]);
-                                   } else {
-                                     setSelectedIndustries(selectedIndustries.filter(i => i !== industry));
-                                   }
-                                 }}
-                                 className="mr-2"
-                               />
-                               <span className="text-sm">{industry}</span>
-                             </label>
-                           ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
+                               {/* Industry */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Industry</label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
+                    >
+                      <span className={selectedIndustries.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
+                        {selectedIndustries.length > 0 ? `${selectedIndustries.length} selected` : 'Select Industries'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showIndustryDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto dropdown-container">
+                        <div className="p-2">
+                          <input
+                            type="text"
+                            placeholder="Search industries..."
+                            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                            value={industrySearch}
+                            onChange={(e) => setIndustrySearch(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className="max-h-48 overflow-auto">
+                          {industries
+                            .filter(industry => industry.toLowerCase().includes(industrySearch.toLowerCase()))
+                            .map((industry) => (
+                              <div 
+                                key={industry} 
+                                className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedIndustries.includes(industry)) {
+                                    setSelectedIndustries(selectedIndustries.filter(i => i !== industry));
+                                  } else {
+                                    setSelectedIndustries([...selectedIndustries, industry]);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIndustries.includes(industry)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    if (e.target.checked) {
+                                      setSelectedIndustries([...selectedIndustries, industry]);
+                                    } else {
+                                      setSelectedIndustries(selectedIndustries.filter(i => i !== industry));
+                                    }
+                                  }}
+                                  className="mr-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className="text-sm">{industry}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                  
                  {/* Selected Industries Tags */}
                  {selectedIndustries.length > 0 && (
@@ -366,58 +387,72 @@ export default function Home() {
                  )}
                </div>
 
-               {/* Location */}
-               <div>
-                 <label className="block text-gray-700 font-medium mb-2">Location</label>
-                 <div className="relative">
-                   <button
-                     type="button"
-                     onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
-                   >
-                     <span className={selectedLocations.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
-                       {selectedLocations.length > 0 ? `${selectedLocations.length} selected` : 'Select Locations'}
-                     </span>
-                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                     </svg>
-                   </button>
-                   
-                   {showLocationDropdown && (
-                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                       <div className="p-2">
-                         <input
-                           type="text"
-                           placeholder="Search locations..."
-                           className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                           value={locationSearch}
-                           onChange={(e) => setLocationSearch(e.target.value)}
-                         />
-                       </div>
-                       <div className="max-h-48 overflow-auto">
-                         {locations
-                           .filter(location => location.toLowerCase().includes(locationSearch.toLowerCase()))
-                           .map((location) => (
-                             <label key={location} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
-                               <input
-                                 type="checkbox"
-                                 checked={selectedLocations.includes(location)}
-                                 onChange={(e) => {
-                                   if (e.target.checked) {
-                                     setSelectedLocations([...selectedLocations, location]);
-                                   } else {
-                                     setSelectedLocations(selectedLocations.filter(l => l !== location));
-                                   }
-                                 }}
-                                 className="mr-2"
-                               />
-                               <span className="text-sm">{location}</span>
-                             </label>
-                           ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
+                               {/* Location */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Location</label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
+                    >
+                      <span className={selectedLocations.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
+                        {selectedLocations.length > 0 ? `${selectedLocations.length} selected` : 'Select Locations'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showLocationDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto dropdown-container">
+                        <div className="p-2">
+                          <input
+                            type="text"
+                            placeholder="Search locations..."
+                            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                            value={locationSearch}
+                            onChange={(e) => setLocationSearch(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className="max-h-48 overflow-auto">
+                          {locations
+                            .filter(location => location.toLowerCase().includes(locationSearch.toLowerCase()))
+                            .map((location) => (
+                              <div 
+                                key={location} 
+                                className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedLocations.includes(location)) {
+                                    setSelectedLocations(selectedLocations.filter(l => l !== location));
+                                  } else {
+                                    setSelectedLocations([...selectedLocations, location]);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedLocations.includes(location)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    if (e.target.checked) {
+                                      setSelectedLocations([...selectedLocations, location]);
+                                    } else {
+                                      setSelectedLocations(selectedLocations.filter(l => l !== location));
+                                    }
+                                  }}
+                                  className="mr-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className="text-sm">{location}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                  
                  {/* Selected Locations Tags */}
                  {selectedLocations.length > 0 && (
@@ -441,58 +476,72 @@ export default function Home() {
                  )}
                </div>
 
-               {/* Job Title */}
-               <div>
-                 <label className="block text-gray-700 font-medium mb-2">Job Title</label>
-                 <div className="relative">
-                   <button
-                     type="button"
-                     onClick={() => setShowJobTitleDropdown(!showJobTitleDropdown)}
-                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
-                   >
-                     <span className={selectedJobTitles.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
-                       {selectedJobTitles.length > 0 ? `${selectedJobTitles.length} selected` : 'Select Job Titles'}
-                     </span>
-                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                     </svg>
-                   </button>
-                   
-                   {showJobTitleDropdown && (
-                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                       <div className="p-2">
-                         <input
-                           type="text"
-                           placeholder="Search job titles..."
-                           className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                           value={jobTitleSearch}
-                           onChange={(e) => setJobTitleSearch(e.target.value)}
-                         />
-                       </div>
-                       <div className="max-h-48 overflow-auto">
-                         {jobTitles
-                           .filter(jobTitle => jobTitle.toLowerCase().includes(jobTitleSearch.toLowerCase()))
-                           .map((jobTitle) => (
-                             <label key={jobTitle} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
-                               <input
-                                 type="checkbox"
-                                 checked={selectedJobTitles.includes(jobTitle)}
-                                 onChange={(e) => {
-                                   if (e.target.checked) {
-                                     setSelectedJobTitles([...selectedJobTitles, jobTitle]);
-                                   } else {
-                                     setSelectedJobTitles(selectedJobTitles.filter(j => j !== jobTitle));
-                                   }
-                                 }}
-                                 className="mr-2"
-                               />
-                               <span className="text-sm">{jobTitle}</span>
-                             </label>
-                           ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
+                               {/* Job Title */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Job Title</label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => setShowJobTitleDropdown(!showJobTitleDropdown)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
+                    >
+                      <span className={selectedJobTitles.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
+                        {selectedJobTitles.length > 0 ? `${selectedJobTitles.length} selected` : 'Select Job Titles'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showJobTitleDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto dropdown-container">
+                        <div className="p-2">
+                          <input
+                            type="text"
+                            placeholder="Search job titles..."
+                            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                            value={jobTitleSearch}
+                            onChange={(e) => setJobTitleSearch(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                        <div className="max-h-48 overflow-auto">
+                          {jobTitles
+                            .filter(jobTitle => jobTitle.toLowerCase().includes(jobTitleSearch.toLowerCase()))
+                            .map((jobTitle) => (
+                              <div 
+                                key={jobTitle} 
+                                className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedJobTitles.includes(jobTitle)) {
+                                    setSelectedJobTitles(selectedJobTitles.filter(j => j !== jobTitle));
+                                  } else {
+                                    setSelectedJobTitles([...selectedJobTitles, jobTitle]);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedJobTitles.includes(jobTitle)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    if (e.target.checked) {
+                                      setSelectedJobTitles([...selectedJobTitles, jobTitle]);
+                                    } else {
+                                      setSelectedJobTitles(selectedJobTitles.filter(j => j !== jobTitle));
+                                    }
+                                  }}
+                                  className="mr-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <span className="text-sm">{jobTitle}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                  
                  {/* Selected Job Titles Tags */}
                  {selectedJobTitles.length > 0 && (
@@ -516,47 +565,60 @@ export default function Home() {
                  )}
                </div>
 
-               {/* Company Size */}
-               <div>
-                 <label className="block text-gray-700 font-medium mb-2">Company Size</label>
-                 <div className="relative">
-                   <button
-                     type="button"
-                     onClick={() => setShowCompanySizeDropdown(!showCompanySizeDropdown)}
-                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
-                   >
-                     <span className={selectedCompanySizes.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
-                       {selectedCompanySizes.length > 0 ? `${selectedCompanySizes.length} selected` : 'Select Company Sizes'}
-                     </span>
-                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                     </svg>
-                   </button>
-                   
-                   {showCompanySizeDropdown && (
-                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                       <div className="max-h-48 overflow-auto">
-                         {companySizes.map((size) => (
-                           <label key={size.value} className="flex items-center p-2 hover:bg-gray-50 cursor-pointer">
-                             <input
-                               type="checkbox"
-                               checked={selectedCompanySizes.includes(size.value)}
-                               onChange={(e) => {
-                                 if (e.target.checked) {
-                                   setSelectedCompanySizes([...selectedCompanySizes, size.value]);
-                                 } else {
-                                   setSelectedCompanySizes(selectedCompanySizes.filter(s => s !== size.value));
-                                 }
-                               }}
-                               className="mr-2"
-                             />
-                             <span className="text-sm">{size.label}</span>
-                           </label>
-                         ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
+                               {/* Company Size */}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Company Size</label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => setShowCompanySizeDropdown(!showCompanySizeDropdown)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-white flex items-center justify-between"
+                    >
+                      <span className={selectedCompanySizes.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
+                        {selectedCompanySizes.length > 0 ? `${selectedCompanySizes.length} selected` : 'Select Company Sizes'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showCompanySizeDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto dropdown-container">
+                        <div className="max-h-48 overflow-auto">
+                          {companySizes.map((size) => (
+                            <div 
+                              key={size.value} 
+                              className="flex items-center p-2 hover:bg-gray-50 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (selectedCompanySizes.includes(size.value)) {
+                                  setSelectedCompanySizes(selectedCompanySizes.filter(s => s !== size.value));
+                                } else {
+                                  setSelectedCompanySizes([...selectedCompanySizes, size.value]);
+                                }
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedCompanySizes.includes(size.value)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  if (e.target.checked) {
+                                    setSelectedCompanySizes([...selectedCompanySizes, size.value]);
+                                  } else {
+                                    setSelectedCompanySizes(selectedCompanySizes.filter(s => s !== size.value));
+                                  }
+                                }}
+                                className="mr-2"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <span className="text-sm">{size.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                  
                  {/* Selected Company Sizes Tags */}
                  {selectedCompanySizes.length > 0 && (
