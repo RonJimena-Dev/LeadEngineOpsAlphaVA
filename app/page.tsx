@@ -18,7 +18,8 @@ export default function Home() {
   
   // Multi-tag filter system
   const [industryTags, setIndustryTags] = useState<string[]>([]);
-  const [locationTags, setLocationTags] = useState<string[]>([]);
+  const [countryTags, setCountryTags] = useState<string[]>([]);
+  const [stateTags, setStateTags] = useState<string[]>([]);
   const [jobTitleTags, setJobTitleTags] = useState<string[]>([]);
   
   // Range sliders
@@ -27,12 +28,14 @@ export default function Home() {
   
   // Input states for new tags
   const [industryInput, setIndustryInput] = useState('');
-  const [locationInput, setLocationInput] = useState('');
+  const [countryInput, setCountryInput] = useState('');
+  const [stateInput, setStateInput] = useState('');
   const [jobTitleInput, setJobTitleInput] = useState('');
   
   // Suggestions
   const [industrySuggestions, setIndustrySuggestions] = useState<string[]>([]);
-  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [countrySuggestions, setCountrySuggestions] = useState<string[]>([]);
+  const [stateSuggestions, setStateSuggestions] = useState<string[]>([]);
   const [jobTitleSuggestions, setJobTitleSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -65,17 +68,21 @@ export default function Home() {
     }
   };
 
-  // Add location tag (Country|City format)
-  const addLocationTag = (location: string) => {
-    if (location && !locationTags.includes(location)) {
-      // Validate format: Country|City
-      if (location.includes('|')) {
-        setLocationTags([...locationTags, location]);
-        setLocationInput('');
-        setLocationSuggestions([]);
-      } else {
-        alert('Please use format: Country|City (e.g., USA|New York)');
-      }
+  // Add country tag
+  const addCountryTag = (country: string) => {
+    if (country && !countryTags.includes(country)) {
+      setCountryTags([...countryTags, country]);
+      setCountryInput('');
+      setCountrySuggestions([]);
+    }
+  };
+
+  // Add state tag
+  const addStateTag = (state: string) => {
+    if (state && !stateTags.includes(state)) {
+      setStateTags([...stateTags, state]);
+      setStateInput('');
+      setStateSuggestions([]);
     }
   };
 
@@ -90,7 +97,8 @@ export default function Home() {
 
   // Remove tags
   const removeIndustryTag = (tag: string) => setIndustryTags(industryTags.filter(t => t !== tag));
-  const removeLocationTag = (tag: string) => setLocationTags(locationTags.filter(t => t !== tag));
+  const removeCountryTag = (tag: string) => setCountryTags(countryTags.filter(t => t !== tag));
+  const removeStateTag = (tag: string) => setStateTags(stateTags.filter(t => t !== tag));
   const removeJobTitleTag = (tag: string) => setJobTitleTags(jobTitleTags.filter(t => t !== tag));
 
   // Handle input changes with suggestions
@@ -105,14 +113,40 @@ export default function Home() {
     }
   };
 
-  const handleLocationInputChange = (value: string) => {
-    setLocationInput(value);
+  const handleCountryInputChange = (value: string) => {
+    setCountryInput(value);
     if (value.length > 0) {
-      const suggestions = ['USA|New York', 'USA|Los Angeles', 'USA|Chicago', 'Canada|Toronto', 'Canada|Vancouver', 'UK|London', 'UK|Manchester', 'Germany|Berlin', 'France|Paris', 'Australia|Sydney']
-        .filter(location => location.toLowerCase().includes(value.toLowerCase()));
-      setLocationSuggestions(suggestions);
+      const suggestions = ['USA', 'Canada', 'UK', 'Germany', 'France', 'Australia', 'Japan', 'India', 'Brazil', 'Mexico']
+        .filter(country => country.toLowerCase().includes(value.toLowerCase()));
+      setCountrySuggestions(suggestions);
     } else {
-      setLocationSuggestions([]);
+      setCountrySuggestions([]);
+    }
+  };
+
+  const handleStateInputChange = (value: string) => {
+    setStateInput(value);
+    if (value.length > 0) {
+      const suggestions = [
+        // All 50 USA States
+        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+        'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+        'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+        'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
+        'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming',
+        // Major Cities
+        'New York City', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
+        'Austin', 'Jacksonville', 'Fort Worth', 'Columbus', 'Charlotte', 'San Francisco', 'Indianapolis', 'Seattle', 'Denver', 'Washington DC',
+        'Boston', 'El Paso', 'Nashville', 'Detroit', 'Oklahoma City', 'Portland', 'Las Vegas', 'Memphis', 'Louisville', 'Baltimore',
+        'Milwaukee', 'Albuquerque', 'Tucson', 'Fresno', 'Sacramento', 'Atlanta', 'Kansas City', 'Long Beach', 'Colorado Springs', 'Miami',
+        'Raleigh', 'Omaha', 'Minneapolis', 'Cleveland', 'Tulsa', 'Arlington', 'New Orleans', 'Wichita', 'Cleveland', 'Tampa',
+        // International Cities
+        'Toronto', 'Vancouver', 'Montreal', 'London', 'Manchester', 'Birmingham', 'Leeds', 'Liverpool', 'Berlin', 'Munich', 'Hamburg',
+        'Paris', 'Lyon', 'Marseille', 'Sydney', 'Melbourne', 'Brisbane', 'Tokyo', 'Osaka', 'Yokohama', 'Mumbai', 'Delhi', 'Bangalore'
+      ].filter(state => state.toLowerCase().includes(value.toLowerCase()));
+      setStateSuggestions(suggestions);
+    } else {
+      setStateSuggestions([]);
     }
   };
 
@@ -134,9 +168,15 @@ export default function Home() {
     }
   };
 
-  const handleLocationKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && locationInput.trim()) {
-      addLocationTag(locationInput.trim());
+  const handleCountryKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && countryInput.trim()) {
+      addCountryTag(countryInput.trim());
+    }
+  };
+
+  const handleStateKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && stateInput.trim()) {
+      addStateTag(stateInput.trim());
     }
   };
 
@@ -147,7 +187,7 @@ export default function Home() {
   };
 
   // Check if any filters are set
-  const hasFilters = industryTags.length > 0 || locationTags.length > 0 || jobTitleTags.length > 0;
+  const hasFilters = industryTags.length > 0 || countryTags.length > 0 || stateTags.length > 0 || jobTitleTags.length > 0;
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -163,16 +203,17 @@ export default function Home() {
     setJobStatus('Starting lead generation...');
     setGeneratedLeads([]);
 
-    // Prepare payload exactly as specified
-    const filtersPayload = {
-      industry: industryTags,
-      employeeMin: employeeRange.min,
-      employeeMax: employeeRange.max,
-      revenueMin: revenueRange.min,
-      revenueMax: revenueRange.max,
-      locations: locationTags,
-      titles: jobTitleTags
-    };
+          // Prepare payload exactly as specified
+      const filtersPayload = {
+        industry: industryTags,
+        employeeMin: employeeRange.min,
+        employeeMax: employeeRange.max,
+        revenueMin: revenueRange.min,
+        revenueMax: revenueRange.max,
+        countries: countryTags,
+        states: stateTags,
+        titles: jobTitleTags
+      };
 
     console.log('Sending filters payload:', filtersPayload);
 
@@ -204,16 +245,20 @@ export default function Home() {
 
   const pollJobStatus = async (jobId: string) => {
     try {
+      console.log('Polling job status for:', jobId);
       const response = await fetch(`/api/scrape/status?jobId=${jobId}`);
+      
       if (response.ok) {
         const status = await response.json();
+        console.log('Job status response:', status);
         
         if (status.status === 'completed') {
           setIsLoading(false);
-          setJobStatus(`Scraping completed! Found ${status.results?.totalLeads || 0} leads`);
+          setJobStatus(`Scraping completed! Found ${status.totalLeads || 0} leads`);
           
-          if (status.results?.leads && status.results.leads.length > 0) {
-            setGeneratedLeads(status.results.leads);
+          if (status.leads && status.leads.length > 0) {
+            console.log('Setting generated leads:', status.leads);
+            setGeneratedLeads(status.leads);
           } else {
             setGeneratedLeads([]);
             setJobStatus('No leads found. Try different filters or check scraping logs.');
@@ -223,18 +268,29 @@ export default function Home() {
           setIsLoading(false);
           setJobStatus(`Scraping failed: ${status.error || 'Unknown error'}`);
         } else {
+          // Update status with progress
+          setJobStatus(`Searching... ${status.progress || 0}% complete (${status.totalLeads || 0} leads found)`);
+          // Continue polling
           setTimeout(() => pollJobStatus(jobId), 2000);
         }
+      } else {
+        console.error('Status response not ok:', response.status);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        // Continue polling even on error
+        setTimeout(() => pollJobStatus(jobId), 2000);
       }
     } catch (error) {
       console.error('Error polling job status:', error);
+      // Continue polling even on error
       setTimeout(() => pollJobStatus(jobId), 2000);
     }
   };
 
   const clearAllFilters = () => {
     setIndustryTags([]);
-    setLocationTags([]);
+    setCountryTags([]);
+    setStateTags([]);
     setJobTitleTags([]);
     setEmployeeRange({ min: 1, max: 10000 });
     setRevenueRange({ min: 0, max: 10000000 });
@@ -280,26 +336,26 @@ export default function Home() {
               </div>
             </div>
             
-            <nav className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowAdvancedFilters(false)}
-                className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Dashboard
-              </button>
-              <button 
-                onClick={() => setShowAdvancedFilters(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Generate Leads
-              </button>
-              <button 
-                onClick={() => setShowLeadsTable(true)}
-                className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                My Leads
-              </button>
-            </nav>
+                         <nav className="flex items-center space-x-4">
+               <button 
+                 onClick={() => setShowAdvancedFilters(false)}
+                 className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
+               >
+                 Dashboard
+               </button>
+               <button 
+                 onClick={() => setShowAdvancedFilters(true)}
+                 className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+               >
+                 Generate Leads
+               </button>
+               <button 
+                 onClick={() => setShowLeadsTable(true)}
+                 className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
+               >
+                 My Leads
+               </button>
+             </nav>
           </div>
         </div>
       </header>
@@ -371,12 +427,12 @@ export default function Home() {
                 </p>
                 
                 <div className="text-center mt-8">
-                  <button 
-                    className="px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-xl rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 border-0"
-                    onClick={() => setShowAdvancedFilters(true)}
-                  >
-                    Start Multi-Tag Scraping
-                  </button>
+                                     <button 
+                     className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-0"
+                     onClick={() => setShowAdvancedFilters(true)}
+                   >
+                     Start Multi-Tag Scraping
+                   </button>
                 </div>
               </div>
             </div>
@@ -452,53 +508,101 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Location Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Location (Country|City format)</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Type Country|City and press Enter (e.g., USA|New York)"
-                      value={locationInput}
-                      onChange={(e) => handleLocationInputChange(e.target.value)}
-                      onKeyPress={handleLocationKeyPress}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {locationSuggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        {locationSuggestions.map(location => (
-                          <div
-                            key={location}
-                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => addLocationTag(location)}
-                          >
-                            {location}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {locationTags.length > 0 ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {locationTags.map(tag => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800"
-                        >
-                          {tag}
-                          <button
-                            onClick={() => removeLocationTag(tag)}
-                            className="ml-2 text-green-600 hover:text-green-800 font-bold"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-2">No locations selected</p>
-                  )}
-                </div>
+                                 {/* Country Filter */}
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-3">Country (Multi-tag)</label>
+                   <div className="relative">
+                     <input
+                       type="text"
+                       placeholder="Type country and press Enter (e.g., USA, Canada)"
+                       value={countryInput}
+                       onChange={(e) => handleCountryInputChange(e.target.value)}
+                       onKeyPress={handleCountryKeyPress}
+                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     />
+                     {countrySuggestions.length > 0 && (
+                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                         {countrySuggestions.map(country => (
+                           <div
+                             key={country}
+                             className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                             onClick={() => addCountryTag(country)}
+                           >
+                             {country}
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   {countryTags.length > 0 ? (
+                     <div className="mt-3 flex flex-wrap gap-2">
+                       {countryTags.map(tag => (
+                         <span
+                           key={tag}
+                           className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800"
+                         >
+                           {tag}
+                           <button
+                             onClick={() => removeCountryTag(tag)}
+                             className="ml-2 text-green-600 hover:text-green-800 font-bold"
+                           >
+                             ×
+                           </button>
+                         </span>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-gray-500 mt-2">No countries selected</p>
+                   )}
+                 </div>
+
+                 {/* State Filter */}
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-3">State/City (Multi-tag)</label>
+                   <div className="relative">
+                     <input
+                       type="text"
+                       placeholder="Type state/city and press Enter (e.g., New York, London)"
+                       value={stateInput}
+                       onChange={(e) => handleStateInputChange(e.target.value)}
+                       onKeyPress={handleStateKeyPress}
+                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     />
+                     {stateSuggestions.length > 0 && (
+                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                         {stateSuggestions.map(state => (
+                           <div
+                             key={state}
+                             className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                             onClick={() => addStateTag(state)}
+                           >
+                             {state}
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   {stateTags.length > 0 ? (
+                     <div className="mt-3 flex flex-wrap gap-2">
+                       {stateTags.map(tag => (
+                         <span
+                           key={tag}
+                           className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800"
+                         >
+                           {tag}
+                           <button
+                             onClick={() => removeStateTag(tag)}
+                             className="ml-2 text-orange-600 hover:text-orange-800 font-bold"
+                           >
+                             ×
+                           </button>
+                         </span>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-gray-500 mt-2">No states/cities selected</p>
+                   )}
+                 </div>
 
                 {/* Job Title Filter */}
                 <div>
@@ -581,10 +685,10 @@ export default function Home() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Revenue Range (USD)</label>
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-600">Min: ${(employeeRange.min).toLocaleString()}</span>
-                      <span className="text-sm text-gray-600">Max: ${(employeeRange.max).toLocaleString()}</span>
-                    </div>
+                                         <div className="flex items-center space-x-4">
+                       <span className="text-sm text-gray-600">Min: ${(revenueRange.min).toLocaleString()}</span>
+                       <span className="text-sm text-gray-600">Max: ${(revenueRange.max).toLocaleString()}</span>
+                     </div>
                     <div className="flex space-x-4">
                       <input
                         type="range"
@@ -626,9 +730,10 @@ export default function Home() {
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Active Filters:</h4>
                   <div className="text-sm text-gray-600">
-                    {industryTags.length > 0 && <div>Industries: {industryTags.join(', ')}</div>}
-                    {locationTags.length > 0 && <div>Locations: {locationTags.join(', ')}</div>}
-                    {jobTitleTags.length > 0 && <div>Job Titles: {jobTitleTags.join(', ')}</div>}
+                                         {industryTags.length > 0 && <div>Industries: {industryTags.join(', ')}</div>}
+                     {countryTags.length > 0 && <div>Countries: {countryTags.join(', ')}</div>}
+                     {stateTags.length > 0 && <div>States/Cities: {stateTags.join(', ')}</div>}
+                     {jobTitleTags.length > 0 && <div>Job Titles: {jobTitleTags.join(', ')}</div>}
                     <div>Employee Range: {employeeRange.min} - {employeeRange.max}</div>
                     <div>Revenue Range: ${revenueRange.min.toLocaleString()} - ${revenueRange.max.toLocaleString()}</div>
                   </div>
@@ -693,13 +798,13 @@ export default function Home() {
 
             {/* Generate Button */}
             <div className="text-center space-y-4">
-              <button
-                onClick={startScraping}
-                disabled={!hasFilters || isLoading}
-                className="px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-xl rounded-2xl transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 border-0 disabled:transform-none disabled:shadow-lg"
-              >
-                {isLoading ? 'Searching...' : 'Generate Leads'}
-              </button>
+                             <button
+                 onClick={startScraping}
+                 disabled={!hasFilters || isLoading}
+                 className="px-10 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold text-xl rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-0 disabled:transform-none disabled:cursor-not-allowed"
+               >
+                 {isLoading ? 'Searching...' : 'Generate Leads'}
+               </button>
               
               {!hasFilters && (
                 <p className="text-gray-500">Set at least one filter to enable generation</p>
@@ -719,13 +824,13 @@ export default function Home() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Generated Leads ({generatedLeads.length})
                   </h3>
-                  <button
-                    onClick={() => exportToCSV(generatedLeads)}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
-                  >
-                    <span>📥</span>
-                    <span>Download CSV</span>
-                  </button>
+                                     <button
+                     onClick={() => exportToCSV(generatedLeads)}
+                     className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center space-x-2 border-0"
+                   >
+                     <span>📥</span>
+                     <span>Download CSV</span>
+                   </button>
                 </div>
                 
                 {/* Results Table */}

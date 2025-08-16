@@ -25,7 +25,8 @@ interface FilterPayload {
   employeeMax: number;
   revenueMin: number;
   revenueMax: number;
-  locations: string[];
+  countries: string[];
+  states: string[];
   titles: string[];
 }
 
@@ -54,7 +55,7 @@ function buildSearchQueries(filters: FilterPayload): string[] {
   const queries: string[] = [];
   
   // Base LinkedIn search
-  if (filters.titles.length > 0 || filters.industry.length > 0 || filters.locations.length > 0) {
+  if (filters.titles.length > 0 || filters.industry.length > 0 || filters.countries.length > 0 || filters.states.length > 0) {
     let linkedinQuery = 'site:linkedin.com';
     
     if (filters.titles.length > 0) {
@@ -65,11 +66,12 @@ function buildSearchQueries(filters: FilterPayload): string[] {
       linkedinQuery += ` "${filters.industry.join('" OR "')}"`;
     }
     
-    if (filters.locations.length > 0) {
-      const cities = filters.locations.map(loc => loc.split('|')[1]).filter(Boolean);
-      if (cities.length > 0) {
-        linkedinQuery += ` "${cities.join('" OR "')}"`;
-      }
+    if (filters.states.length > 0) {
+      linkedinQuery += ` "${filters.states.join('" OR "')}"`;
+    }
+    
+    if (filters.countries.length > 0) {
+      linkedinQuery += ` "${filters.countries.join('" OR "')}"`;
     }
     
     queries.push(linkedinQuery);
@@ -105,51 +107,52 @@ async function simulateScraping(filters: FilterPayload, jobId: string): Promise<
   const searchQueries = buildSearchQueries(filters);
   
   // Simulate scraping different sources
-  for (const query of searchQueries) {
-    if (leads.length >= maxLeads) break;
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
-    // Generate realistic sample leads based on filters
-    const leadsForQuery = Math.min(
-      Math.floor(Math.random() * 50) + 10, // 10-60 leads per query
-      maxLeads - leads.length
-    );
-    
-    for (let i = 0; i < leadsForQuery; i++) {
-      const industry = filters.industry[Math.floor(Math.random() * filters.industry.length)] || 'Technology';
-      const location = filters.locations[Math.floor(Math.random() * filters.locations.length)] || 'USA|New York';
-      const jobTitle = filters.titles[Math.floor(Math.random() * filters.titles.length)] || 'Manager';
+      for (const query of searchQueries) {
+      if (leads.length >= maxLeads) break;
       
-      const lead: Lead = {
-        contact_name: generateRandomName(),
-        contact_phone: Math.random() > 0.3 ? generateRandomPhone() : null,
-        contact_email: Math.random() > 0.2 ? generateRandomEmail() : null,
-        company_name: generateRandomCompany(industry),
-        company_social: {
-          linkedin: Math.random() > 0.1 ? `https://linkedin.com/company/${generateRandomSlug()}` : null,
-          twitter: Math.random() > 0.3 ? `https://twitter.com/${generateRandomSlug()}` : null,
-        },
-        job_title: jobTitle,
-        industry: industry,
-        location: location.split('|')[1] || location,
-        lead_score: Math.floor(Math.random() * 40) + 60, // 60-100 score
-        source: 'linkedin',
-        scraped_at: new Date().toISOString()
-      };
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
       
-      leads.push(lead);
+      // Generate realistic sample leads based on filters
+      const leadsForQuery = Math.min(
+        Math.floor(Math.random() * 50) + 10, // 10-60 leads per query
+        maxLeads - leads.length
+      );
       
-      // Update job progress
-      const job = activeJobs.get(jobId);
-      if (job) {
-        job.progress = Math.min(100, (leads.length / maxLeads) * 100);
-        job.totalLeads = leads.length;
-        activeJobs.set(jobId, job);
+      for (let i = 0; i < leadsForQuery; i++) {
+        const industry = filters.industry[Math.floor(Math.random() * filters.industry.length)] || 'Technology';
+        const country = filters.countries[Math.floor(Math.random() * filters.countries.length)] || 'USA';
+        const state = filters.states[Math.floor(Math.random() * filters.states.length)] || 'New York';
+        const jobTitle = filters.titles[Math.floor(Math.random() * filters.titles.length)] || 'Manager';
+        
+        const lead: Lead = {
+          contact_name: generateRandomName(),
+          contact_phone: Math.random() > 0.3 ? generateRandomPhone() : null,
+          contact_email: Math.random() > 0.2 ? generateRandomEmail() : null,
+          company_name: generateRandomCompany(industry),
+          company_social: {
+            linkedin: Math.random() > 0.1 ? `https://linkedin.com/company/${generateRandomSlug()}` : null,
+            twitter: Math.random() > 0.3 ? `https://twitter.com/${generateRandomSlug()}` : null,
+          },
+          job_title: jobTitle,
+          industry: industry,
+          location: `${state}, ${country}`,
+          lead_score: Math.floor(Math.random() * 40) + 60, // 60-100 score
+          source: 'linkedin',
+          scraped_at: new Date().toISOString()
+        };
+        
+        leads.push(lead);
+        
+        // Update job progress
+        const job = activeJobs.get(jobId);
+        if (job) {
+          job.progress = Math.min(100, (leads.length / maxLeads) * 100);
+          job.totalLeads = leads.length;
+          activeJobs.set(jobId, job);
+        }
       }
     }
-  }
   
   return leads;
 }
@@ -230,15 +233,8 @@ export async function POST(request: NextRequest) {
   try {
     const filters: FilterPayload = await request.json();
     
-    // Validate required filters
-    if (!filters.industry || !filters.locations || !filters.titles) {
-      return NextResponse.json(
-        { error: 'Missing required filters: industry, locations, and titles are required' },
-        { status: 400 }
-      );
-    }
-    
-    if (filters.industry.length === 0 && filters.locations.length === 0 && filters.titles.length === 0) {
+    // Validate that at least one filter is set
+    if (filters.industry.length === 0 && filters.countries.length === 0 && filters.states.length === 0 && filters.titles.length === 0) {
       return NextResponse.json(
         { error: 'At least one filter must be set' },
         { status: 400 }

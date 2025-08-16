@@ -1,22 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// This endpoint will be handled by the main route.ts file
-// The GET method in the main route handles both /api/scrape and /api/scrape/status
+// This route handles /api/scrape/status requests
+// It redirects to the main /api/scrape route with the jobId parameter
 export async function GET(request: NextRequest) {
-  // Redirect to main scrape endpoint for status checks
-  const url = new URL(request.url);
-  const jobId = url.searchParams.get('jobId');
-  
-  if (!jobId) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const jobId = searchParams.get('jobId');
+    
+    if (!jobId) {
+      return NextResponse.json(
+        { error: 'Job ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Forward the request to the main scrape route
+    const response = await fetch(`${request.nextUrl.origin}/api/scrape?jobId=${jobId}`);
+    const data = await response.json();
+    
+    return NextResponse.json(data);
+    
+  } catch (error) {
+    console.error('Error in GET /api/scrape/status:', error);
     return NextResponse.json(
-      { error: 'Job ID is required' },
-      { status: 400 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
-  
-  // This endpoint is a fallback - the main route.ts handles status checks
-  return NextResponse.json(
-    { error: 'Use /api/scrape?jobId=... for status checks' },
-    { status: 400 }
-  );
 }
