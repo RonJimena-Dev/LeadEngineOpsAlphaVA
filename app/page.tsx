@@ -256,10 +256,11 @@ export default function Home() {
           setIsLoading(false);
           setJobStatus(`Scraping completed! Found ${status.totalLeads || 0} leads`);
           
-          if (status.leads && status.leads.length > 0) {
-            console.log('Setting generated leads:', status.leads);
-            setGeneratedLeads(status.leads);
-          } else {
+                     if (status.leads && status.leads.length > 0) {
+             console.log('Setting generated leads:', status.leads);
+             console.log('First lead structure:', status.leads[0]);
+             setGeneratedLeads(status.leads);
+           } else {
             setGeneratedLeads([]);
             setJobStatus('No leads found. Try different filters or check scraping logs.');
           }
@@ -339,7 +340,7 @@ export default function Home() {
                          <nav className="flex items-center space-x-4">
                <button 
                  onClick={() => setShowAdvancedFilters(false)}
-                 className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
                >
                  Dashboard
                </button>
@@ -351,7 +352,7 @@ export default function Home() {
                </button>
                <button 
                  onClick={() => setShowLeadsTable(true)}
-                 className="px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
+                 className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg hover:shadow-xl transform hover:scale-105"
                >
                  My Leads
                </button>
@@ -845,55 +846,55 @@ export default function Home() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social Links</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {generatedLeads
-                        .slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
-                        .map((lead, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {lead.contact_name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.contact_phone || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.contact_email || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.company_name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div className="flex items-center space-x-2">
-                              {lead.company_social?.linkedin && (
-                                <a
-                                  href={lead.company_social.linkedin}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 transition-colors"
-                                  title="LinkedIn"
-                                >
-                                  <span className="text-lg">🔗</span>
-                                </a>
-                              )}
-                              {lead.company_social?.twitter && (
-                                <a
-                                  href={lead.company_social.twitter}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-400 hover:text-blue-600 transition-colors"
-                                  title="Twitter"
-                                >
-                                  <span className="text-lg">🐦</span>
-                                </a>
-                              )}
-                              {!lead.company_social?.linkedin && !lead.company_social?.twitter && (
-                                <span className="text-gray-400">No social links</span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
+                                         <tbody className="bg-white divide-y divide-gray-200">
+                       {generatedLeads
+                         .slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage)
+                         .map((lead, index) => (
+                         <tr key={index} className="hover:bg-gray-50">
+                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                             {lead.contact_name || lead.name || 'N/A'}
+                           </td>
+                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                             {lead.contact_phone || lead.phone || 'N/A'}
+                           </td>
+                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                             {lead.contact_email || lead.email || 'N/A'}
+                           </td>
+                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                             {lead.company_name || lead.company || 'N/A'}
+                           </td>
+                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                             <div className="flex items-center space-x-2">
+                               {lead.company_social?.linkedin && (
+                                 <a
+                                   href={lead.company_social.linkedin}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="text-blue-600 hover:text-blue-800 transition-colors"
+                                   title="LinkedIn"
+                                 >
+                                   <span className="text-lg">🔗</span>
+                                 </a>
+                               )}
+                               {lead.company_social?.twitter && (
+                                 <a
+                                   href={lead.company_social.twitter}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="text-blue-400 hover:text-blue-600 transition-colors"
+                                   title="Twitter"
+                                 >
+                                   <span className="text-lg">🐦</span>
+                                 </a>
+                               )}
+                               {!lead.company_social?.linkedin && !lead.company_social?.twitter && (
+                                 <span className="text-gray-400">No social links</span>
+                               )}
+                             </div>
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
                   </table>
                 </div>
 
