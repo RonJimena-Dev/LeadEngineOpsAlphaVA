@@ -14,7 +14,7 @@ export default function Home() {
   const [showLeadsTable, setShowLeadsTable] = useState(false);
   const [currentJob, setCurrentJob] = useState(null);
   const [jobStatus, setJobStatus] = useState('');
-  const [generatedLeads, setGeneratedLeads] = useState([]);
+  const [generatedLeads, setGeneratedLeads] = useState<any[]>([]);
   
   // Multi-tag filter system
   const [industryTags, setIndustryTags] = useState<string[]>([]);
@@ -94,7 +94,7 @@ export default function Home() {
   const removeJobTitleTag = (tag: string) => setJobTitleTags(jobTitleTags.filter(t => t !== tag));
 
   // Handle input changes with suggestions
-  const handleIndustryInputChange = (value) => {
+  const handleIndustryInputChange = (value: string) => {
     setIndustryInput(value);
     if (value.length > 0) {
       const suggestions = ['SaaS', 'Fintech', 'Healthcare', 'E-commerce', 'Manufacturing', 'Real Estate', 'Education', 'Consulting', 'Legal', 'Non-Profit']
@@ -105,7 +105,7 @@ export default function Home() {
     }
   };
 
-  const handleLocationInputChange = (value) => {
+  const handleLocationInputChange = (value: string) => {
     setLocationInput(value);
     if (value.length > 0) {
       const suggestions = ['USA|New York', 'USA|Los Angeles', 'USA|Chicago', 'Canada|Toronto', 'Canada|Vancouver', 'UK|London', 'UK|Manchester', 'Germany|Berlin', 'France|Paris', 'Australia|Sydney']
@@ -116,31 +116,31 @@ export default function Home() {
     }
   };
 
-  const handleJobTitleInputChange = (value) => {
+  const handleJobTitleInputChange = (value: string) => {
     setJobTitleInput(value);
     if (value.length > 0) {
       const suggestions = ['CEO', 'CTO', 'CFO', 'VP Engineering', 'Head of Tech', 'Product Manager', 'Sales Director', 'Marketing Manager', 'Operations Director', 'Founder']
         .filter(title => title.toLowerCase().includes(value.toLowerCase()));
-      setJobTitleSuggestions(title => title.toLowerCase().includes(value.toLowerCase()));
+      setJobTitleSuggestions(suggestions);
     } else {
       setJobTitleSuggestions([]);
     }
   };
 
   // Handle Enter key
-  const handleIndustryKeyPress = (e) => {
+  const handleIndustryKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && industryInput.trim()) {
       addIndustryTag(industryInput.trim());
     }
   };
 
-  const handleLocationKeyPress = (e) => {
+  const handleLocationKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && locationInput.trim()) {
       addLocationTag(locationInput.trim());
     }
   };
 
-  const handleJobTitleKeyPress = (e) => {
+  const handleJobTitleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && jobTitleInput.trim()) {
       addJobTitleTag(jobTitleInput.trim());
     }
@@ -202,7 +202,7 @@ export default function Home() {
     }
   };
 
-  const pollJobStatus = async (jobId) => {
+  const pollJobStatus = async (jobId: string) => {
     try {
       const response = await fetch(`/api/scrape/status?jobId=${jobId}`);
       if (response.ok) {
@@ -240,7 +240,7 @@ export default function Home() {
     setRevenueRange({ min: 0, max: 10000000 });
   };
 
-  const exportToCSV = (data) => {
+  const exportToCSV = (data: any[]) => {
     const csvContent = [
       ['Name', 'Phone', 'Email', 'Company', 'Social Links'],
       ...data.map(lead => [
