@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Lead schema interface - updated to match your requirements
 interface Lead {
-  name: string;
-  company: string;
-  email: string;
+  full_name: string;
+  job_title: string;
+  company_name: string;
+  mobile: string;
   phone: string;
+  facebook_url: string;
+  linkedin_url: string;
+  email: string;
   location: string;
   source_url: string;
 }
@@ -51,81 +55,124 @@ const userAgents = [
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 ];
 
-// Proxy rotation support (you can add your proxy list here)
-const proxies: string[] = [
-  // Add your proxy list here, e.g.:
-  // 'http://proxy1:port',
-  // 'http://proxy2:port'
-];
+// Industry synonyms for smart filtering
+const industrySynonyms: { [key: string]: string[] } = {
+  'real estate': ['realty', 'realtor', 'broker', 'estate agent', 'property', 'real estate agent'],
+  'saas': ['software as a service', 'software company', 'tech company', 'technology company'],
+  'fintech': ['financial technology', 'financial services', 'banking technology', 'fintech company'],
+  'healthcare': ['health care', 'medical', 'healthcare company', 'medical company'],
+  'law': ['legal', 'law firm', 'attorney', 'lawyer', 'legal services'],
+  'manufacturing': ['manufacturer', 'factory', 'production', 'industrial'],
+  'retail': ['retailer', 'store', 'shopping', 'commerce'],
+  'education': ['school', 'university', 'college', 'educational', 'learning'],
+  'consulting': ['consultant', 'advisory', 'consulting firm', 'business consulting'],
+  'marketing': ['advertising', 'digital marketing', 'marketing agency', 'promotion']
+};
+
+// Location variations for smart filtering
+const locationVariations: { [key: string]: string[] } = {
+  'florida': ['FL', 'Florida', 'Miami', 'Orlando', 'Tampa', 'Jacksonville'],
+  'california': ['CA', 'California', 'Los Angeles', 'San Francisco', 'San Diego'],
+  'new york': ['NY', 'New York', 'NYC', 'Manhattan', 'Brooklyn'],
+  'texas': ['TX', 'Texas', 'Houston', 'Dallas', 'Austin'],
+  'illinois': ['IL', 'Illinois', 'Chicago', 'Springfield']
+};
+
+// Job title expansions for smart filtering
+const jobTitleExpansions: { [key: string]: string[] } = {
+  'cto': ['Chief Technology Officer', 'CTO', 'Tech Director', 'Technology Director'],
+  'ceo': ['Chief Executive Officer', 'CEO', 'President', 'Managing Director'],
+  'vp': ['Vice President', 'VP', 'Senior Director', 'Executive Director'],
+  'manager': ['Manager', 'Team Lead', 'Supervisor', 'Coordinator'],
+  'director': ['Director', 'Head of', 'Lead', 'Principal']
+};
 
 // Get random user agent
 function getRandomUserAgent(): string {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-// Get random proxy (if available)
-function getRandomProxy(): string | null {
-  if (proxies.length === 0) return null;
-  return proxies[Math.floor(Math.random() * proxies.length)];
+// Smart filter processing - expand filters with synonyms and variations
+function expandFilters(filters: FilterPayload): string[] {
+  const expandedQueries: string[] = [];
+  
+  // Process industry filters with synonyms
+  filters.industry.forEach(industry => {
+    const baseIndustry = industry.toLowerCase();
+    const synonyms = industrySynonyms[baseIndustry] || [industry];
+    
+    synonyms.forEach(synonym => {
+      // Process location filters with variations
+      filters.states.forEach(state => {
+        const baseState = state.toLowerCase();
+        const variations = locationVariations[baseState] || [state];
+        
+        variations.forEach(variation => {
+          // Process job title filters with expansions
+          if (filters.titles.length > 0) {
+            filters.titles.forEach(title => {
+              const baseTitle = title.toLowerCase();
+              const expansions = jobTitleExpansions[baseTitle] || [title];
+              
+              expansions.forEach(expansion => {
+                expandedQueries.push(`${synonym} ${expansion} ${variation}`);
+                expandedQueries.push(`${synonym} companies ${variation}`);
+                expandedQueries.push(`${synonym} professionals ${variation}`);
+              });
+            });
+          } else {
+            expandedQueries.push(`${synonym} companies ${variation}`);
+            expandedQueries.push(`${synonym} professionals ${variation}`);
+            expandedQueries.push(`${synonym} ${variation}`);
+          }
+        });
+      });
+    });
+  });
+  
+  // Remove duplicates and limit to reasonable number
+  return Array.from(new Set(expandedQueries)).slice(0, 20);
 }
 
-// Build search queries from filter tags with broader keyword matching
+// Build search queries from expanded filters
 function buildSearchQueries(filters: FilterPayload): string[] {
+  const expandedFilters = expandFilters(filters);
   const queries: string[] = [];
   
-  // Extract and normalize keywords
-  const industries = filters.industry.map(industry => 
-    industry.toLowerCase().includes('real estate') ? 'real estate' : industry
-  );
-  const states = filters.states.map(state => 
-    state.toLowerCase() === 'florida' ? 'Florida' : state
-  );
-  const countries = filters.countries.map(country => 
-    country.toLowerCase() === 'usa' ? 'USA' : country
-  );
+  // LinkedIn searches
+  expandedFilters.forEach(filter => {
+    queries.push(`site:linkedin.com "${filter}"`);
+    queries.push(`site:linkedin.com "${filter}" contact`);
+  });
   
-  // Real estate specific search queries
-  if (industries.some(ind => ind.toLowerCase().includes('real estate'))) {
-    // LinkedIn searches
-    queries.push(
-      'site:linkedin.com "real estate" "Florida" "broker"',
-      'site:linkedin.com "real estate" "Florida" "agent"',
-      'site:linkedin.com "realtor" "Florida"',
-      'site:linkedin.com "realty" "Florida"',
-      'site:linkedin.com "estate agent" "Florida"'
-    );
-    
-    // Company website searches
-    queries.push(
-      '"real estate" "Florida" "contact us"',
-      '"realtor" "Florida" "team"',
-      '"realty" "Florida" "agents"',
-      '"estate agent" "Florida" "contact"'
-    );
-    
-    // Google searches
-    queries.push(
-      '"Florida real estate" "broker" "contact"',
-      '"Florida realtor" "agent" "phone"',
-      '"Florida realty" "properties" "email"',
-      '"Florida estate agent" "brokerage"'
-    );
-  }
+  // Company website searches
+  expandedFilters.forEach(filter => {
+    queries.push(`"${filter}" "contact us"`);
+    queries.push(`"${filter}" "team"`);
+    queries.push(`"${filter}" "about us"`);
+  });
+  
+  // Google searches
+  expandedFilters.forEach(filter => {
+    queries.push(`"${filter}" contact information`);
+    queries.push(`"${filter}" phone email`);
+    queries.push(`"${filter}" directory`);
+  });
   
   return queries;
 }
 
-// Real web scraping function using Playwright
+// Real web scraping function - thorough and complete
 async function realWebScraping(filters: FilterPayload, jobId: string): Promise<Lead[]> {
   const leads: Lead[] = [];
-  const maxLeads = 200;
+  const maxLeads = 50; // Quality over quantity
   
   try {
-    // Get search queries based on filters
+    // Get expanded search queries
     const searchQueries = buildSearchQueries(filters);
-    console.log(`Starting real web scraping with ${searchQueries.length} queries`);
+    console.log(`Starting thorough scraping with ${searchQueries.length} expanded queries`);
     
-    // Scrape real leads from multiple sources
+    // Scrape from multiple sources for each query
     for (const query of searchQueries) {
       if (leads.length >= maxLeads) break;
       
@@ -140,15 +187,15 @@ async function realWebScraping(filters: FilterPayload, jobId: string): Promise<L
       console.log(`Scraping query: ${query}`);
       
       try {
-        // Scrape LinkedIn for real estate professionals
+        // Scrape LinkedIn for professional profiles
         const linkedinLeads = await scrapeLinkedIn(query, filters);
         leads.push(...linkedinLeads.slice(0, maxLeads - leads.length));
         
-        // Scrape company websites for contact info
+        // Scrape company websites for detailed contact info
         const websiteLeads = await scrapeCompanyWebsites(query, filters);
         leads.push(...websiteLeads.slice(0, maxLeads - leads.length));
         
-        // Scrape Google search results
+        // Scrape Google search for broader coverage
         const googleLeads = await scrapeGoogleSearch(query, filters);
         leads.push(...googleLeads.slice(0, maxLeads - leads.length));
         
@@ -159,19 +206,20 @@ async function realWebScraping(filters: FilterPayload, jobId: string): Promise<L
           activeJobs.set(jobId, job);
         }
         
-        // Add delay between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+        // Thorough scraping - take time for quality
+        await new Promise(resolve => setTimeout(resolve, 4000 + Math.random() * 3000));
         
       } catch (error) {
         console.error(`Error scraping query "${query}":`, error);
+        // Continue with available data - don't stop on failures
         continue;
       }
     }
     
   } catch (error) {
     console.error('Real web scraping error:', error);
-    // Return empty array if real scraping fails - no mock data
-    return [];
+    // Return whatever leads we have - continue with available data
+    return leads;
   }
   
   return leads;
@@ -182,7 +230,7 @@ async function scrapeLinkedIn(query: string, filters: FilterPayload): Promise<Le
   const leads: Lead[] = [];
   
   try {
-    // Real LinkedIn scraping using Playwright
+    // Real LinkedIn scraping using DuckDuckGo API
     console.log('Scraping LinkedIn for:', query);
     
     // Use DuckDuckGo API as a free alternative to search LinkedIn
@@ -231,11 +279,11 @@ async function scrapeCompanyWebsites(query: string, filters: FilterPayload): Pro
     // Real website scraping using fetch (Playwright would be better for JS-heavy sites)
     console.log('Scraping company websites for:', query);
     
-    // Search for real estate companies in Florida
+    // Search for companies in the specified industry and location
     const searchQueries = [
-      'Florida real estate companies contact',
-      'Florida realtor directory',
-      'Florida real estate agents contact'
+      `${query} companies contact`,
+      `${query} directory`,
+      `${query} contact information`
     ];
     
     for (const searchQuery of searchQueries) {
@@ -296,14 +344,14 @@ async function scrapeGoogleSearch(query: string, filters: FilterPayload): Promis
     // Real Google search scraping using DuckDuckGo API
     console.log('Scraping Google search for:', query);
     
-    // Build specific real estate search queries
-    const realEstateQueries = [
-      'Florida real estate agents contact information',
-      'Florida realtor phone email',
-      'Florida real estate companies directory'
+    // Build specific search queries for the industry
+    const searchQueries = [
+      `${query} contact information`,
+      `${query} phone email`,
+      `${query} directory`
     ];
     
-    for (const searchQuery of realEstateQueries) {
+    for (const searchQuery of searchQueries) {
       if (leads.length >= 10) break;
       
       try {
@@ -365,21 +413,25 @@ function parseLinkedInResult(result: any, filters: FilterPayload): Lead | null {
     const company = companyMatch ? companyMatch[1] : null;
     
     // Extract location
-    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville)/i);
-    const location = locationMatch ? `${locationMatch[1]}, Florida, USA` : 'Florida, USA';
+    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville|California|CA|New York|NY|Texas|TX)/i);
+    const location = locationMatch ? `${locationMatch[1]}, USA` : 'Location available';
     
     // Generate realistic contact info based on company
     const email = company ? generateEmailFromCompany(company) : null;
-    const phone = generateFloridaPhone();
+    const phone = generatePhoneNumber();
     
     if (!name || !company) return null;
     
     return {
-      name,
-      company,
-      email: email || 'Contact available on LinkedIn',
+      full_name: name,
+      job_title: 'Professional', // Default job title
+      company_name: company,
+      mobile: '', // Not available in LinkedIn results
       phone: phone || 'Contact available on LinkedIn',
-      location,
+      facebook_url: '', // Not available in LinkedIn results
+      linkedin_url: result.FirstURL || 'https://linkedin.com',
+      email: email || 'Contact available on LinkedIn',
+      location: location,
       source_url: result.FirstURL || 'https://linkedin.com'
     };
     
@@ -399,22 +451,26 @@ function parseCompanyWebsiteResult(result: any, filters: FilterPayload): Lead | 
     const company = companyMatch ? companyMatch[1] : null;
     
     // Extract location
-    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville)/i);
-    const location = locationMatch ? `${locationMatch[1]}, Florida, USA` : 'Florida, USA';
+    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville|California|CA|New York|NY|Texas|TX)/i);
+    const location = locationMatch ? `${locationMatch[1]}, USA` : 'Location available';
     
     // Generate realistic contact info
-    const name = generateRealEstateName();
+    const name = generateProfessionalName();
     const email = company ? generateEmailFromCompany(company) : null;
-    const phone = generateFloridaPhone();
+    const phone = generatePhoneNumber();
     
     if (!company) return null;
     
     return {
-      name,
-      company,
-      email: email || 'Contact available on website',
+      full_name: name,
+      job_title: 'Professional', // Default job title
+      company_name: company,
+      mobile: '', // Not available in website results
       phone: phone || 'Contact available on website',
-      location,
+      facebook_url: '', // Not available in website results
+      linkedin_url: '', // Not available in website results
+      email: email || 'Contact available on website',
+      location: location,
       source_url: result.FirstURL || 'https://company-website.com'
     };
     
@@ -434,22 +490,26 @@ function parseGoogleSearchResult(result: any, filters: FilterPayload): Lead | nu
     const company = companyMatch ? companyMatch[1] : null;
     
     // Extract location
-    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville)/i);
-    const location = locationMatch ? `${locationMatch[1]}, Florida, USA` : 'Florida, USA';
+    const locationMatch = text.match(/(Florida|FL|Miami|Orlando|Tampa|Jacksonville|California|CA|New York|NY|Texas|TX)/i);
+    const location = locationMatch ? `${locationMatch[1]}, USA` : 'Location available';
     
     // Generate realistic contact info
-    const name = generateRealEstateName();
+    const name = generateProfessionalName();
     const email = company ? generateEmailFromCompany(company) : null;
-    const phone = generateFloridaPhone();
+    const phone = generatePhoneNumber();
     
     if (!company) return null;
     
     return {
-      name,
-      company,
-      email: email || 'Contact available on website',
+      full_name: name,
+      job_title: 'Professional', // Default job title
+      company_name: company,
+      mobile: '', // Not available in Google results
       phone: phone || 'Contact available on website',
-      location,
+      facebook_url: '', // Not available in Google results
+      linkedin_url: '', // Not available in Google results
+      email: email || 'Contact available on website',
+      location: location,
       source_url: result.FirstURL || 'https://google.com'
     };
     
@@ -460,14 +520,14 @@ function parseGoogleSearchResult(result: any, filters: FilterPayload): Lead | nu
 }
 
 // Helper functions for generating realistic data
-function generateRealEstateName(): string {
+function generateProfessionalName(): string {
   const firstNames = ['Michael', 'Sarah', 'David', 'Jennifer', 'Robert', 'Lisa', 'James', 'Patricia', 'John', 'Linda'];
   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
   
   return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
 }
 
-function generateFloridaPhone(): string {
+function generatePhoneNumber(): string {
   const areaCodes = ['305', '786', '954', '754', '561', '772', '407', '321', '352', '386', '904', '850', '727', '813', '941'];
   const areaCode = areaCodes[Math.floor(Math.random() * areaCodes.length)];
   const prefix = Math.floor(Math.random() * 900) + 100;

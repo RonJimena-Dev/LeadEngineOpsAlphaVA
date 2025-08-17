@@ -299,14 +299,17 @@ export default function Home() {
 
   const exportToCSV = (data: any[]) => {
     const csvContent = [
-      ['Name', 'Phone', 'Email', 'Company', 'Location', 'Source URL'],
+      ['Full Name', 'Job Title', 'Company Name', 'Mobile', 'Phone', 'Email', 'Location', 'LinkedIn URL', 'Facebook URL'],
       ...data.map(lead => [
-        lead.name || 'N/A',
+        lead.full_name || 'N/A',
+        lead.job_title || 'N/A',
+        lead.company_name || 'N/A',
+        lead.mobile || 'N/A',
         lead.phone || 'N/A',
         lead.email || 'N/A',
-        lead.company || 'N/A',
         lead.location || 'N/A',
-        lead.source_url || 'N/A'
+        lead.linkedin_url || 'N/A',
+        lead.facebook_url || 'N/A'
       ])
     ];
 
@@ -840,12 +843,14 @@ export default function Home() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social Links</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -854,7 +859,16 @@ export default function Home() {
                         .map((lead, index) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {lead.name || 'N/A'}
+                            {lead.full_name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.job_title || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.company_name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.mobile || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {lead.phone || 'N/A'}
@@ -863,21 +877,36 @@ export default function Home() {
                             {lead.email || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.company || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {lead.location || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <a
-                              href={lead.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 transition-colors"
-                              title="View Source"
-                            >
-                              🔗
-                            </a>
+                            <div className="flex items-center space-x-2">
+                              {lead.linkedin_url && (
+                                <a
+                                  href={lead.linkedin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                  title="LinkedIn"
+                                >
+                                  <span className="text-lg">🔗</span>
+                                </a>
+                              )}
+                              {lead.facebook_url && (
+                                <a
+                                  href={lead.facebook_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                  title="Facebook"
+                                >
+                                  <span className="text-lg">📘</span>
+                                </a>
+                              )}
+                              {!lead.linkedin_url && !lead.facebook_url && (
+                                <span className="text-gray-400">No social links</span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -940,39 +969,61 @@ export default function Home() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social Links</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {generatedLeads.length > 0 ? (
                       generatedLeads.map((lead, index) => (
                         <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lead.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.company}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.location}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.email}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lead.full_name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.job_title}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.company_name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.mobile}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.phone}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.email}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.location}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <a
-                              href={lead.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 transition-colors"
-                              title="View Source"
-                            >
-                              🔗
-                            </a>
+                            <div className="flex items-center space-x-2">
+                              {lead.linkedin_url && (
+                                <a
+                                  href={lead.linkedin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                  title="LinkedIn"
+                                >
+                                  <span className="text-lg">🔗</span>
+                                </a>
+                              )}
+                              {lead.facebook_url && (
+                                <a
+                                  href={lead.facebook_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                  title="Facebook"
+                                >
+                                  <span className="text-lg">📘</span>
+                                </a>
+                              )}
+                              {!lead.linkedin_url && !lead.facebook_url && (
+                                <span className="text-gray-400">No social links</span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                           <div className="text-center">
                             <p className="text-lg font-medium text-gray-900 mb-2">No leads yet</p>
                             <p className="text-gray-500">Generate your first leads to see them here</p>
