@@ -246,7 +246,7 @@ export default function Home() {
   const pollJobStatus = async (jobId: string) => {
     try {
       console.log('Polling job status for:', jobId);
-      const response = await fetch(`/api/scrape/status?jobId=${jobId}`);
+      const response = await fetch(`/api/scrape?jobId=${jobId}`);
       
       if (response.ok) {
         const status = await response.json();
